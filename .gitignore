@@ -1,0 +1,6 @@
+.Rproj.user
+.Rhistory
+.Ruserdata
+*.Rproj
+*.RData
+LinkPathRainDepths*

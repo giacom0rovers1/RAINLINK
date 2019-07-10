@@ -90,8 +90,8 @@ if (GivePathLib!="no"&GivePathLib!="yes")
 # Define center of Azimuthal Equidistant Cartesian coordinate system.
 # XMiddle becomes center of Azimuthal Equidistant Cartesian coordinate system. 
 # YMiddle becomes center of Azimuthal Equidistant Cartesian coordinate system. 
-XMiddle <- 5.387242	# longitude in degrees (WGS84)
-YMiddle <- 52.155223	# latitude in degrees (WGS84)
+XMiddle <-  10.687315	# longitude in degrees (WGS84)
+YMiddle <-  44.585718	# latitude in degrees (WGS84)
 # These coordinates should be provided in the coordinate system CoorSystemInputData.
 # We chose 52.155223°N 5.387242°E as the middle of the Netherlands ('The Tower 
 # of Our Lady' is a church tower in Amersfoort and used to be the middle point 
@@ -104,8 +104,8 @@ YMiddle <- 52.155223	# latitude in degrees (WGS84)
 ############################
 
 # Maximum and minimum allowed microwave frequency:
-MaxFrequency <- 40.5	# GHz 
-MinFrequency <- 12.5	# GHz
+MaxFrequency <- 45	# GHz 
+MinFrequency <- 5	  # GHz
 
 
 

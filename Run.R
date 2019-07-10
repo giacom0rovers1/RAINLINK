@@ -34,9 +34,9 @@
 # This also loads the RAINLINK package.                     #
 #############################################################
 
+rm(list = ls())
+
 source("Config.R") 
-
-
 
 
 ############################
@@ -44,7 +44,8 @@ source("Config.R")
 ############################
 
 # Load example data:
-data(Linkdata)
+load("data/Linkdata_ER2016.RData")
+summary(Linkdata)
 
 # Add column with polarization if this column is not supplied in the link data:
 if ("Polarization" %in% names(Linkdata)==FALSE)
@@ -63,6 +64,7 @@ DataPreprocessed <- PreprocessingMinMaxRSL(Data=Linkdata,MaxFrequency=MaxFrequen
 
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
+summary(DataPreprocessed)
 
 
 
@@ -80,6 +82,7 @@ ThresholdWetDry=ThresholdWetDry)
 
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
+summary(WetDry)
 
 
 
@@ -93,6 +96,8 @@ StartTime <- proc.time()
 Pref <- RefLevelMinMaxRSL(Data=DataPreprocessed,Dry=WetDry$Dry,HoursRefLevel=HoursRefLevel,PeriodHoursRefLevel=PeriodHoursRefLevel)
 
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
+
+summary(Pref)
 
 
 # If wet-dry classification (function WetDryNearbyLinkApMinMaxRSL) has not been applied, run the R function as follows:
@@ -112,7 +117,7 @@ cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits
 # Run R function:
 DataOutlierFiltered <- OutlierFilterMinMaxRSL(Data=DataPreprocessed,F=WetDry$F,FilterThreshold=FilterThreshold)
 
-
+summary(DataOutlierFiltered)
 
 
 ######################
@@ -122,6 +127,7 @@ DataOutlierFiltered <- OutlierFilterMinMaxRSL(Data=DataPreprocessed,F=WetDry$F,F
 # Run R function:
 Pcor <- CorrectMinMaxRSL(Data=DataOutlierFiltered,Dry=WetDry$Dry,Pref=Pref)
 
+summary(Pcor)
 
 # If wet-dry classification (function WetDryNearbyLinkApMinMaxRSL) has not been applied, run the R function as follows:
 Pcor <- CorrectMinMaxRSL(Data=DataPreprocessed,Dry=NULL,Pref=Pref)
@@ -147,6 +153,7 @@ Rmean <- RainRetrievalMinMaxRSL(Aa=Aa,alpha=alpha,Data=DataOutlierFiltered,kRPow
 
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
+summary(Rmean)
 
 # If wet-dry classification (function WetDryNearbyLinkApMinMaxRSL) has not been applied, run the R function as follows:
 StartTime <- proc.time()
@@ -189,8 +196,8 @@ if (ToFile)
 # Note that the output files contain rainfall depths (mm). If these data are to be used for the interpolation, they must first be read ("Interpolation.R" does not read these files).
 # Using the data for "Interpolation.R" requires a conversion from rainfall depth (mm) to rainfall intensity (mm/h).
 
-
-
+# slow write-to-file, use write_delim() instead
+save(list=ls(), file = "Cmldata.RData")
 
 ###################
 # 7. Interpolation#
