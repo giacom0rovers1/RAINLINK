@@ -37,52 +37,52 @@ pathlib <- "/usr/people/overeem/Rlibraries"
 
 if (GivePathLib=="yes")
 {
-	# Use library(PACKAGENAME,lib.loc=pathlib) if R libraries cannot be found and are installed in a 
-	# specific path.
-
-	# Load RAINLINK package:
-	library(RAINLINK,lib.loc=pathlib)
-
-	# Load other packages:
-	library(curl,lib.loc=pathlib)
-	library(sp,lib.loc=pathlib)		
-	library(gstat,lib.loc=pathlib)	
-	library(crayon,lib.loc=pathlib)	
-	library(withr,lib.loc=pathlib)	
-	library(ggplot2,lib.loc=pathlib)	
-	library(ggmap,lib.loc=pathlib)		
-	library(maps,lib.loc=pathlib)		
-	library(mapproj,lib.loc=pathlib)	
-	library(labeling,lib.loc=pathlib)
-	library(rgdal,lib.loc=pathlib)
-	library(digest,lib.loc=pathlib)
-	#  May require installation of nc-config outside R	
-	library(ncdf4,lib.loc=pathlib)
+  # Use library(PACKAGENAME,lib.loc=pathlib) if R libraries cannot be found and are installed in a 
+  # specific path.
+  
+  # Load RAINLINK package:
+  library(RAINLINK,lib.loc=pathlib)
+  
+  # Load other packages:
+  library(curl,lib.loc=pathlib)
+  library(sp,lib.loc=pathlib)		
+  library(gstat,lib.loc=pathlib)	
+  library(crayon,lib.loc=pathlib)	
+  library(withr,lib.loc=pathlib)	
+  library(ggplot2,lib.loc=pathlib)	
+  library(ggmap,lib.loc=pathlib)		
+  library(maps,lib.loc=pathlib)		
+  library(mapproj,lib.loc=pathlib)	
+  library(labeling,lib.loc=pathlib)
+  library(rgdal,lib.loc=pathlib)
+  library(digest,lib.loc=pathlib)
+  #  May require installation of nc-config outside R	
+  library(ncdf4,lib.loc=pathlib)
 }
 if (GivePathLib=="no")
 {
-	# Load RAINLINK package:
-	library(RAINLINK)
-
-	# Load other packages:
-	library(curl)	
-	library(sp)		
-	library(gstat)	
-	library(crayon)	
-	library(withr)	
-	library(ggplot2)	
-	library(ggmap)	
-	library(maps)		
-	library(mapproj)		
-	library(labeling)
-	library(rgdal)
-	library(digest)
-	library(ncdf4)	
+  # Load RAINLINK package:
+  library(RAINLINK)
+  
+  # Load other packages:
+  library(curl)	
+  library(sp)		
+  library(gstat)	
+  library(crayon)	
+  library(withr)	
+  library(ggplot2)	
+  library(ggmap)	
+  library(maps)		
+  library(mapproj)		
+  library(labeling)
+  library(rgdal)
+  library(digest)
+  library(ncdf4)	
 }
 if (GivePathLib!="no"&GivePathLib!="yes")
 {
-	print("Please specify whether path of R libraries is given by you!")
-	stop()
+  print("Please specify whether path of R libraries is given by you!")
+  stop()
 }
 
 
@@ -202,7 +202,7 @@ FileRainRetrHorizontal <- "ab_values_horizontal.txt"
 ###################
 
 # File with interpolation grid in same coordinate system as CoorSystemInputData:
-FileGrid <- "InterpolationGrid.dat"	# WGS84 (longitude, latitude (degrees))
+FileGrid <- "../ArticoloCML-RER_RainBOproject/codice_giacomo/gestione_dati/interpolation_grids/IntpGridEMR.dat"	# WGS84 (longitude, latitude (degrees))
 
 # For "IDW":
 # Specify the inverse distance weighting power:
@@ -215,9 +215,9 @@ IntpMethod <- "OK"
 
 # For "OK":
 nmax <- 50	# for local kriging: the number of nearest observations that should be used for a 
-		# kriging prediction or simulation, 
-		# where nearest is defined in terms of the space of the spatial locations. By default, 
-		# all observations are used
+# kriging prediction or simulation, 
+# where nearest is defined in terms of the space of the spatial locations. By default, 
+# all observations are used
 
 # For "OK": which variogram to use?
 # Use "ClimVar" for climatological spherical variogram model.
@@ -243,7 +243,7 @@ CoorSystemInputData <- "+init=epsg:4326"	# WGS84
 
 # Select daily time interval, i.e., "0800" implies 0800 UTC previous day - 
 # 0800 UTC present day. Do not use "0000" for 0000 - 0000 UTC, but "2400".
-PERIOD <- "0800"	# hours and minutes
+PERIOD <- "2400"	# hours and minutes
 
 
 # Time zone:
@@ -258,7 +258,7 @@ ExtraDeg <- 0.05
 
 
 # Name of file with polygons of interpolation grid in same coordinate system as CoorSystemInputData:
-FilePolygonsGrid <- "PolygonsGrid.dat"	# WGS84 (longitude, latitude (degrees))
+FilePolygonsGrid <- "../ArticoloCML-RER_RainBOproject/codice_giacomo/gestione_dati/interpolation_grids/PolygGridEMR.dat"	# WGS84 (longitude, latitude (degrees))
 
 
 # Folder name of figures:
@@ -290,7 +290,7 @@ FigHeight <- 2000	# Pixels
 
 
 # Specify font family of text in figures:
-FontFamily <- "Times"
+FontFamily <- ""
 # To select the default font use "". Using "Times" may give warnings when executing the visualisation. 
 # In that case the font is not installed on the computer. This can be solved by using the default font ("").
 
@@ -316,9 +316,9 @@ MinutesHour <- 60
 ConversionDepthToIntensity <- MinutesHour/TIMESTEP
 
 
-# File with interpolation grid in same coordinate system as CoorSystemInputData:
-FileGrid <- "InterpolationGrid.dat"	# WGS84 (longitude, latitude (degrees))
-
+# # File with interpolation grid in same coordinate system as CoorSystemInputData:
+# FileGrid <- "../ArticoloCML-RER_RainBOproject/codice_giacomo/gestione_dati/interpolation_grids/IntpGridEMR.dat"	# WGS84 (longitude, latitude (degrees))
+# !!! FILE GRID IS ALREADY DECLARED UNDER "INTERPOLATION"
 
 
 #################################
@@ -355,11 +355,11 @@ GoogleZoomlevel <- 8
 # OPENSTREETMAP and Stamen Map: SPECIFIC SETTINGS#
 ##################################################
 # Area for which rainfall depths are to be plotted (for OpenStreetMap and Stamen Map only):
-# Amsterdam region (for OpenStreetMap and Stamen Map only):
-OSMLeft <- 4.84			# Longitude in degrees (WGS84) for left side of the area for which rainfall depths are to be plotted (for OpenStreetMap only). 
-OSMBottom <- 52.336		# Latitude in degrees (WGS84) for bottom side of the area for which rainfall depths are to be plotted (for OpenStreetMap only).
-OSMRight <- 4.95		# Longitude in degrees (WGS84) for right side of the area for which rainfall depths are to be plotted (for OpenStreetMap only). 
-OSMTop <- 52.404		# Latitude in degrees (WGS84) for top side of the area for which rainfall depths are to be plotted (for OpenStreetMap only).
+# Emilia Romagna region (for OpenStreetMap and Stamen Map only):
+OSMLeft   <- 9.17			# Longitude in degrees (WGS84) for left side of the area for which rainfall depths are to be plotted (for OpenStreetMap only). 
+OSMBottom <- 43.73		# Latitude in degrees (WGS84) for bottom side of the area for which rainfall depths are to be plotted (for OpenStreetMap only).
+OSMRight  <- 12.76		# Longitude in degrees (WGS84) for right side of the area for which rainfall depths are to be plotted (for OpenStreetMap only). 
+OSMTop    <- 45.15		# Latitude in degrees (WGS84) for top side of the area for which rainfall depths are to be plotted (for OpenStreetMap only).
 
 # Rotterdam region (for OpenStreetMap and Stamen Map only):
 #left <- 4.41		# Longitude in degrees (WGS84)
@@ -398,7 +398,7 @@ OSMScale <- 24000  # Scale for Amsterdam.
 
 
 # Which zoom level to use for the Stamen Maps? This determines the level of detail. Large values take more time. It does not determine the domain of the area which is plotted.
-StamenZoomlevel <- 8
+StamenZoomlevel <- 9
 # 15 nice zoom level for map Amsterdam.
 # 8 or 9 nice zoom level for whole Netherlands.
 
@@ -510,8 +510,8 @@ ColourScheme <- c("#ffffcc","#a1dab4","#41b6c4","#2c7fb8","#253494","#a133c8")
 # Part of title of plot: 
 TitleLinks <- "Links, nearby link approach, outlier filter"
 TitleRadars <- "Radars + Gauges"
-ExtraText <- "Amsterdam"		# For instance location of map (e.g. a city or country).
-ExtraText <- "The Netherlands"
+ExtraText <- "Emilia Romagna"		# For instance location of map (e.g. a city or country).
+ExtraText <- "Italy"
 
 
 # Part of figure name for links or radars for chosen TIMESTEP or day:
@@ -522,7 +522,7 @@ FigFileRadarsDaily <- paste("RadarsDaily",gsub(" ","",ExtraText),sep="")
 
 
 # Choose output file type of image: jpeg, png or tiff.
-OutputFileType <- "jpeg"
+OutputFileType <- "png"
 ######################################
 
 
@@ -578,8 +578,8 @@ SymbolPlotLocation <- "+"
 # OPTIONS FOR FUNCTION PlotLinkLocations#
 #########################################
 TitleLinkLocations <- "Locations of microwave link paths"
-ExtraTextLinkLocations <- "The Netherlands"
-FigFileLinkLocations <- "LinkLocationsTheNetherlands"
+ExtraTextLinkLocations <- "Emilia Romagna (Italy)"
+FigFileLinkLocations <- "LinkLocationsEmiliaRomagna"
 
 
 

@@ -35,7 +35,6 @@
 #############################################################
 
 rm(list = ls())
-
 source("Config.R") 
 
 
@@ -43,8 +42,8 @@ source("Config.R")
 # 1. PreprocessingMinMaxRSL#
 ############################
 
-# Load example data:
-load("data/Linkdata_ER2016.RData")
+# Load data:
+load("data/Linkdata_vodafone2016.RData")
 summary(Linkdata)
 
 # Add column with polarization if this column is not supplied in the link data:
@@ -68,7 +67,6 @@ DataPreprocessed <- PreprocessingMinMaxRSL(Data=Linkdata,
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 360 seconds
 
 summary(DataPreprocessed)
-plot(DataPreprocessed$DateTime)
 
 
 ############################################
@@ -256,8 +254,18 @@ FolderRainMaps <- paste("RainMapsLinks",TIMESTEP,"min",sep="")
 # Run R function:
 StartTime <- proc.time()
 
-Interpolation(Data=DataPreprocessed,CoorSystemInputData=NULL,idp=idp,IntpMethod=IntpMethod,nmax=nmax,
-              NUGGET=NUGGET,RANGE=RANGE,RainGrid=RainGrid,Rmean=Rmean,SILL=SILL,Variogram=Variogram,OutputDir=FolderRainMaps)
+RainFields <- Interpolation(Data=DataPreprocessed,
+                            CoorSystemInputData=NULL,
+                            idp=idp,
+                            IntpMethod=IntpMethod,
+                            nmax=nmax,
+                            NUGGET=NUGGET,
+                            RANGE=RANGE,
+                            RainGrid=RainGrid,
+                            Rmean=Rmean,
+                            SILL=SILL,
+                            Variogram=Variogram,
+                            OutputDir=NULL ) #FolderRainMaps)
 
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 

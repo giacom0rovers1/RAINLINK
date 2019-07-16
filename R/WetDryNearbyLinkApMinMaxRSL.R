@@ -74,165 +74,165 @@
 
 
 WetDryNearbyLinkApMinMaxRSL <- function(Data,CoorSystemInputData=NULL,MinHoursPmin=6,PeriodHoursPmin=24,
-Radius=15,Step8=TRUE,ThresholdMedian=-1.4,ThresholdMedianL=-0.7,ThresholdNumberLinks=3,ThresholdWetDry=2)
+                                        Radius=15,Step8=TRUE,ThresholdMedian=-1.4,ThresholdMedianL=-0.7,ThresholdNumberLinks=3,ThresholdWetDry=2)
 {
-	# Determine the middle of the area over which there are data 
-	# (for reprojection onto a Cartesian coordinate system)
-	if (!is.null(CoorSystemInputData))
-	{
-		Coor <- data.frame(x = c(min(Data$XStart, Data$XEnd), max(Data$XStart, Data$XEnd)), 
-		y = c(min(Data$YStart, Data$YEnd), max(Data$YStart, Data$YEnd)))
-		coordinates(Coor) <- c("x", "y")
-		proj4string(Coor) <- CRS(CoorSystemInputData) 
-		CRS.latlon <- CRS("+proj=longlat +ellps=WGS84")
-		Coor.latlon <- spTransform(Coor, CRS.lotlon)
-		XMiddle <- (Coor.latlon$x[1] + Coor.latlon$x[2]) / 2
-		YMiddle <- (Coor.latlon$y[1] + Coor.latlon$y[2]) / 2
-	} else {
-		XMiddle <- (min(Data$XStart, Data$XEnd) + max(Data$XStart, Data$XEnd)) / 2
-		YMiddle <- (min(Data$YStart, Data$YEnd) + max(Data$YStart, Data$YEnd)) / 2
-		CoorSystemInputData <- "+proj=longlat +ellps=WGS84"
-	}
-	
-	# Set projection string
-	projstring <- paste("+proj=aeqd +a=6378.137 +b=6356.752 +R_A +lat_0=",YMiddle,
-	" +lon_0=",XMiddle," +x_0=0 +y_0=0",sep="")
-	
-  	# Set link IDs and time intervals
-	Data$ID <- as.character(Data$ID)
-   	IDLink <- unique(Data$ID)
-   	N_links <- length(IDLink)
-	t <- sort(unique(Data$DateTime))
-	N_t <- length(t)
-	
-	# Make numeric representation of time in seconds from an arbitrary origin
-	t_sec <- as.numeric(as.POSIXct(as.character(t), format = "%Y%m%d%H%M"))
-	
-	# Determine time interval length (in seconds)
-	dt <- min(diff(t_sec))
-	
-	#Determine time indices for each entry
-	t_ind <- rep(NA, length(Data$DateTime))
-	for (i in 1 : N_t)
-	{
-		ind <- which(Data$DateTime == t[i])
-		t_ind[ind] <- i
-	}
-	
-	# Initialize arrays and vectors
-	PminLink <- array(NA, c(N_t, N_links))
-	array_ind <- array(NA, c(N_t, N_links))
-   	XStartLink <- rep(NA, N_links)
-	YStartLink <- rep(NA, N_links)
-	XEndLink <- rep(NA, N_links)
-	YEndLink <- rep(NA, N_links)
-	LengthLink <- rep(NA, N_links)
-	
-	# Loop over all links for coordinate transformation and putting data in an array
-   	for (p in 1 : N_links)
-   	{
-		# Find indices corresppnding to this link
-		Cond <- which(Data$ID == IDLink[p])
-		
-		#Convert coordinates to a system in km, centered on the area covered by the links
-		Coor <- data.frame(x = c(Data$XStart[Cond[1]], Data$XEnd[Cond[1]]), 
-		y = c(Data$YStart[Cond[1]], Data$YEnd[Cond[1]]))
-		coordinates(Coor) <- c("x", "y")
-		proj4string(Coor) <- CRS(CoorSystemInputData) 
-		CRS.cart <- CRS(projstring)
-		Coor.cart <- spTransform(Coor, CRS.cart)
-		XStartLink[p] <- Coor.cart$x[1]  # Easting (in km)
-		YStartLink[p] <- Coor.cart$y[1]  # Northing (in km)
-		XEndLink[p] <- Coor.cart$x[2]  # Easting (in km)
-		YEndLink[p] <- Coor.cart$y[2]  # Northing (in km)
-		
-		LengthLink[p] <- Data$PathLength[Cond[1]] 
-		
-		# Store data from the considered link in an array
-		PminLink[t_ind[Cond],p] <- Data$Pmin[Cond]
-		array_ind[t_ind[Cond], p] <- Cond
-	}
-	
-	# Initialize arrays
-	PminLink_max <- array(NA, c(N_t, N_links))
-	DeltaP <- array(NA, c(N_t, N_links))
-	DeltaPL <- array(NA, c(N_t, N_links))
-	ind_PrevPeriod <- rep(1, N_t)
-	for (i in 2 : N_t)
-	{
-		# Determine index of time at most PeriodHoursPmin before current time interval
-		int.ind = which(t_sec[ind_PrevPeriod[i - 1] : (i - 1)] > (t_sec[i] - PeriodHoursPmin * 3600))
-		if (length(int.ind) > 0) {
-			ind_PrevPeriod[i] <- min(int.ind) + ind_PrevPeriod[i - 1] - 1
-			
-			# Compute the time for which valid data are available, and check if this is sufficient
-			t_valid <- colSums(!is.na(PminLink[ind_PrevPeriod[i] : i, ])) * dt
-			links_valid <- which(t_valid >= (MinHoursPmin * 3600))
-			if (length(links_valid) > 0)
-			{
-				for (j in links_valid)
-				{
-					# Compute maximum of Pmin over previous PeriodHoursPmin
-					PminLink_max[i, j] <- max(PminLink[ind_PrevPeriod[i] : i, j], na.rm = TRUE)
-				}
-				
-				# Compute Delta P and Delta P_L
-				DeltaP[i, links_valid] <- PminLink[i, links_valid] - PminLink_max[i, links_valid]
-				DeltaPL[i, links_valid] <- DeltaP[i, links_valid] / LengthLink[links_valid]
-			}
-		}
-	}
-	
-	# Initialize dry and F vectors
-	dry_vec <- rep(NA, length(Data$DateTime))
-	F_vec <- rep(NA, length(Data$DateTime))
-	for (i in 1 : N_links)
-	{
-		# Compute distances
-		Distance1 <- sqrt( (XStartLink[i]-XStartLink)^2 + (YStartLink[i]-YStartLink)^2 )
-		Distance2 <- sqrt( (XEndLink[i]-XStartLink)^2 + (YEndLink[i]-YStartLink)^2 ) 	
-		Distance3 <- sqrt( (XStartLink[i]-XEndLink)^2 + (YStartLink[i]-YEndLink)^2 )
-		Distance4 <- sqrt( (XEndLink[i]-XEndLink)^2 + (YEndLink[i]-YEndLink)^2 ) 
-		SelectDist <- which(Distance1 < Radius & Distance2 < Radius & Distance3 < Radius & 
-		Distance4 < Radius )
-		
-		# Loop over all time intervals to compute medians and F values
-		medianDeltaP <- rep(NA, N_t)
-		medianDeltaPL <- rep(NA, N_t)
-		for (j in 1 : N_t)
-		{
-			# Check if enough links are available for median and F computation
-			if (sum(!is.na(DeltaP[j, SelectDist])) >= ThresholdNumberLinks)
-			{
-				medianDeltaP[j] = median(DeltaP[j, SelectDist], na.rm = TRUE)
-				medianDeltaPL[j] = median(DeltaPL[j, SelectDist], na.rm = TRUE)
-				F[j] <- sum(DeltaPL[ind_PrevPeriod[j] : j, i] - 
-				medianDeltaPL[ind_PrevPeriod[j] : j], na.rm = TRUE) * dt / 3600
-			}
-		}
-		
-		# Set dry indicator variable
-		dry  <- rep(0, N_t)
-		dry[medianDeltaP >= ThresholdMedian | medianDeltaPL >= ThresholdMedianL] <- 1
-		dry[is.na(medianDeltaP) | is.na(medianDeltaPL)] <- NA
-		
-		# Perform step 8 if desired
-		if (Step8)
-		{
-			ind_wet <- which(dry == 0 & DeltaP[, i] < (-1 * ThresholdWetDry))
-			int_dry <- dry
-			dry[ind_wet[ind_wet > 1] - 1] <- 0
-			dry[ind_wet[ind_wet > 2] - 2] <- 0
-			dry[ind_wet[ind_wet < length(dry)] + 1] <- 0
-			dry[is.na(int_dry)] <- NA
-		}
-		
-		# Map arrays of dry and F to vectors corresponding to input data frame
-		dry_vec[array_ind[!is.na(array_ind[, i]), i]] <- dry[!is.na(array_ind[, i])]
-		F_vec[array_ind[!is.na(array_ind[, i]), i]] <- F[!is.na(array_ind[, i])]
-	}
-	# Set return data frame
-	return_value <- data.frame(Dry = dry_vec, F = F_vec)
-	return(return_value)
-
+  # Determine the middle of the area over which there are data 
+  # (for reprojection onto a Cartesian coordinate system)
+  if (!is.null(CoorSystemInputData))
+  {
+    Coor <- data.frame(x = c(min(Data$XStart, Data$XEnd), max(Data$XStart, Data$XEnd)), 
+                       y = c(min(Data$YStart, Data$YEnd), max(Data$YStart, Data$YEnd)))
+    coordinates(Coor) <- c("x", "y")
+    proj4string(Coor) <- CRS(CoorSystemInputData) 
+    CRS.latlon <- CRS("+proj=longlat +ellps=WGS84")
+    Coor.latlon <- spTransform(Coor, CRS.lotlon)
+    XMiddle <- (Coor.latlon$x[1] + Coor.latlon$x[2]) / 2
+    YMiddle <- (Coor.latlon$y[1] + Coor.latlon$y[2]) / 2
+  } else {
+    XMiddle <- (min(Data$XStart, Data$XEnd) + max(Data$XStart, Data$XEnd)) / 2
+    YMiddle <- (min(Data$YStart, Data$YEnd) + max(Data$YStart, Data$YEnd)) / 2
+    CoorSystemInputData <- "+proj=longlat +ellps=WGS84"
+  }
+  
+  # Set projection string
+  projstring <- paste("+proj=aeqd +a=6378.137 +b=6356.752 +R_A +lat_0=",YMiddle,
+                      " +lon_0=",XMiddle," +x_0=0 +y_0=0",sep="")
+  
+  # Set link IDs and time intervals
+  Data$ID <- as.character(Data$ID)
+  IDLink <- unique(Data$ID)
+  N_links <- length(IDLink)
+  t <- sort(unique(Data$DateTime))
+  N_t <- length(t)
+  
+  # Make numeric representation of time in seconds from an arbitrary origin
+  t_sec <- as.numeric(as.POSIXct(as.character(t), format = "%Y%m%d%H%M"))
+  
+  # Determine time interval length (in seconds)
+  dt <- min(diff(t_sec))
+  
+  #Determine time indices for each entry
+  t_ind <- rep(NA, length(Data$DateTime))
+  for (i in 1 : N_t)
+  {
+    ind <- which(Data$DateTime == t[i])
+    t_ind[ind] <- i
+  }
+  
+  # Initialize arrays and vectors
+  PminLink <- array(NA, c(N_t, N_links))
+  array_ind <- array(NA, c(N_t, N_links))
+  XStartLink <- rep(NA, N_links)
+  YStartLink <- rep(NA, N_links)
+  XEndLink <- rep(NA, N_links)
+  YEndLink <- rep(NA, N_links)
+  LengthLink <- rep(NA, N_links)
+  
+  # Loop over all links for coordinate transformation and putting data in an array
+  for (p in 1 : N_links)
+  {
+    # Find indices corresppnding to this link
+    Cond <- which(Data$ID == IDLink[p])
+    
+    #Convert coordinates to a system in km, centered on the area covered by the links
+    Coor <- data.frame(x = c(Data$XStart[Cond[1]], Data$XEnd[Cond[1]]), 
+                       y = c(Data$YStart[Cond[1]], Data$YEnd[Cond[1]]))
+    coordinates(Coor) <- c("x", "y")
+    proj4string(Coor) <- CRS(CoorSystemInputData) 
+    CRS.cart <- CRS(projstring)
+    Coor.cart <- spTransform(Coor, CRS.cart)
+    XStartLink[p] <- Coor.cart$x[1]  # Easting (in km)
+    YStartLink[p] <- Coor.cart$y[1]  # Northing (in km)
+    XEndLink[p] <- Coor.cart$x[2]  # Easting (in km)
+    YEndLink[p] <- Coor.cart$y[2]  # Northing (in km)
+    
+    LengthLink[p] <- Data$PathLength[Cond[1]] 
+    
+    # Store data from the considered link in an array
+    PminLink[t_ind[Cond],p] <- Data$Pmin[Cond]
+    array_ind[t_ind[Cond], p] <- Cond
+  }
+  
+  # Initialize arrays
+  PminLink_max <- array(NA, c(N_t, N_links))
+  DeltaP <- array(NA, c(N_t, N_links))
+  DeltaPL <- array(NA, c(N_t, N_links))
+  ind_PrevPeriod <- rep(1, N_t)
+  for (i in 2 : N_t)
+  {
+    # Determine index of time at most PeriodHoursPmin before current time interval
+    int.ind = which(t_sec[ind_PrevPeriod[i - 1] : (i - 1)] > (t_sec[i] - PeriodHoursPmin * 3600))
+    if (length(int.ind) > 0) {
+      ind_PrevPeriod[i] <- min(int.ind) + ind_PrevPeriod[i - 1] - 1
+      
+      # Compute the time for which valid data are available, and check if this is sufficient
+      t_valid <- colSums(!is.na(PminLink[ind_PrevPeriod[i] : i, ])) * dt
+      links_valid <- which(t_valid >= (MinHoursPmin * 3600))
+      if (length(links_valid) > 0)
+      {
+        for (j in links_valid)
+        {
+          # Compute maximum of Pmin over previous PeriodHoursPmin
+          PminLink_max[i, j] <- max(PminLink[ind_PrevPeriod[i] : i, j], na.rm = TRUE)
+        }
+        
+        # Compute Delta P and Delta P_L
+        DeltaP[i, links_valid] <- PminLink[i, links_valid] - PminLink_max[i, links_valid]
+        DeltaPL[i, links_valid] <- DeltaP[i, links_valid] / LengthLink[links_valid]
+      }
+    }
+  }
+  
+  # Initialize dry and F vectors
+  dry_vec <- rep(NA, length(Data$DateTime))
+  F_vec <- rep(NA, length(Data$DateTime))
+  for (i in 1 : N_links)
+  {
+    # Compute distances
+    Distance1 <- sqrt( (XStartLink[i]-XStartLink)^2 + (YStartLink[i]-YStartLink)^2 )
+    Distance2 <- sqrt( (XEndLink[i]-XStartLink)^2 + (YEndLink[i]-YStartLink)^2 ) 	
+    Distance3 <- sqrt( (XStartLink[i]-XEndLink)^2 + (YStartLink[i]-YEndLink)^2 )
+    Distance4 <- sqrt( (XEndLink[i]-XEndLink)^2 + (YEndLink[i]-YEndLink)^2 ) 
+    SelectDist <- which(Distance1 < Radius & Distance2 < Radius & Distance3 < Radius & 
+                          Distance4 < Radius )
+    
+    # Loop over all time intervals to compute medians and F values
+    medianDeltaP <- rep(NA, N_t)
+    medianDeltaPL <- rep(NA, N_t)
+    for (j in 1 : N_t)
+    {
+      # Check if enough links are available for median and F computation
+      if (sum(!is.na(DeltaP[j, SelectDist])) >= ThresholdNumberLinks)
+      {
+        medianDeltaP[j] = median(DeltaP[j, SelectDist], na.rm = TRUE)
+        medianDeltaPL[j] = median(DeltaPL[j, SelectDist], na.rm = TRUE)
+        F[j] <- sum(DeltaPL[ind_PrevPeriod[j] : j, i] - 
+                      medianDeltaPL[ind_PrevPeriod[j] : j], na.rm = TRUE) * dt / 3600
+      }
+    }
+    
+    # Set dry indicator variable
+    dry  <- rep(0, N_t)
+    dry[medianDeltaP >= ThresholdMedian | medianDeltaPL >= ThresholdMedianL] <- 1
+    dry[is.na(medianDeltaP) | is.na(medianDeltaPL)] <- NA
+    
+    # Perform step 8 if desired
+    if (Step8)
+    {
+      ind_wet <- which(dry == 0 & DeltaP[, i] < (-1 * ThresholdWetDry))
+      int_dry <- dry
+      dry[ind_wet[ind_wet > 1] - 1] <- 0
+      dry[ind_wet[ind_wet > 2] - 2] <- 0
+      dry[ind_wet[ind_wet < length(dry)] + 1] <- 0
+      dry[is.na(int_dry)] <- NA
+    }
+    
+    # Map arrays of dry and F to vectors corresponding to input data frame
+    dry_vec[array_ind[!is.na(array_ind[, i]), i]] <- dry[!is.na(array_ind[, i])]
+    F_vec[array_ind[!is.na(array_ind[, i]), i]] <- F[!is.na(array_ind[, i])]
+  }
+  # Set return data frame
+  return_value <- data.frame(Dry = dry_vec, F = F_vec)
+  return(return_value)
+  
 }
