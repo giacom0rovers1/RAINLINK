@@ -34,22 +34,22 @@
 # This also loads the RAINLINK package.                     #
 #############################################################
 
-rm(list = ls())
 source("Config.R") 
+
+
 
 
 ############################
 # 1. PreprocessingMinMaxRSL#
 ############################
 
-# Load data:
-load("data/Linkdata_vodafone2016.RData")
-summary(Linkdata)
+# Load example data:
+data(Linkdata)
 
 # Add column with polarization if this column is not supplied in the link data:
 if ("Polarization" %in% names(Linkdata)==FALSE)
 {
-  Linkdata$Polarization <- rep(NA,nrow(Linkdata))
+   Linkdata$Polarization <- rep(NA,nrow(Linkdata))
 }
 # When no information on polarization is provided, the above code creates a column of NA for Polarization. In the function "RainRetrievalMinMaxRSL.R" links with
 # NA values for polarization are processed with a & b values determined for vertically polarized signals.
@@ -59,14 +59,11 @@ if ("Polarization" %in% names(Linkdata)==FALSE)
 # Run R function:
 StartTime <- proc.time()
 
-DataPreprocessed <- PreprocessingMinMaxRSL(Data=Linkdata,
-                                           MaxFrequency=MaxFrequency,
-                                           MinFrequency=MinFrequency,
-                                           verbose=TRUE)
+DataPreprocessed <- PreprocessingMinMaxRSL(Data=Linkdata,MaxFrequency=MaxFrequency,MinFrequency=MinFrequency,verbose=TRUE)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 360 seconds
+cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
-summary(DataPreprocessed)
+
 
 
 ############################################
@@ -76,20 +73,13 @@ summary(DataPreprocessed)
 # Run R function:	
 StartTime <- proc.time()
 
-WetDry <- WetDryNearbyLinkApMinMaxRSL(Data=DataPreprocessed,
-                                      CoorSystemInputData=NULL, 
-                                      MinHoursPmin=MinHoursPmin,
-                                      PeriodHoursPmin=PeriodHoursPmin,
-                                      Radius=Radius,
-                                      Step8=Step8, 
-                                      ThresholdMedian=ThresholdMedian,
-                                      ThresholdMedianL=ThresholdMedianL,
-                                      ThresholdNumberLinks=ThresholdNumberLinks, 
-                                      ThresholdWetDry=ThresholdWetDry)
+WetDry <- WetDryNearbyLinkApMinMaxRSL(Data=DataPreprocessed,CoorSystemInputData=NULL, 
+MinHoursPmin=MinHoursPmin,PeriodHoursPmin=PeriodHoursPmin,Radius=Radius,Step8=Step8, 
+ThresholdMedian=ThresholdMedian,ThresholdMedianL=ThresholdMedianL,ThresholdNumberLinks=ThresholdNumberLinks, 
+ThresholdWetDry=ThresholdWetDry)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))  # ~ 3100 seconds
+cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
-summary(WetDry)
 
 
 
@@ -100,22 +90,17 @@ summary(WetDry)
 # Run R function:
 StartTime <- proc.time()
 
-Pref <- RefLevelMinMaxRSL(Data=DataPreprocessed,
-                          Dry=WetDry$Dry,
-                          HoursRefLevel=HoursRefLevel,
-                          PeriodHoursRefLevel=PeriodHoursRefLevel)
+Pref <- RefLevelMinMaxRSL(Data=DataPreprocessed,Dry=WetDry$Dry,HoursRefLevel=HoursRefLevel,PeriodHoursRefLevel=PeriodHoursRefLevel)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 5610 seconds
-
-summary(Pref)
+cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
 
-# # If wet-dry classification (function WetDryNearbyLinkApMinMaxRSL) has not been applied, run the R function as follows:
-# StartTime <- proc.time()
-# 
-# Pref <- RefLevelMinMaxRSL(Data=DataPreprocessed,Dry=NULL,HoursRefLevel=HoursRefLevel,PeriodHoursRefLevel=PeriodHoursRefLevel)
-# 
-# cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
+# If wet-dry classification (function WetDryNearbyLinkApMinMaxRSL) has not been applied, run the R function as follows:
+StartTime <- proc.time()
+
+Pref <- RefLevelMinMaxRSL(Data=DataPreprocessed,Dry=NULL,HoursRefLevel=HoursRefLevel,PeriodHoursRefLevel=PeriodHoursRefLevel)
+
+cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
 
 
@@ -125,11 +110,9 @@ summary(Pref)
 #############################################################################################################
 
 # Run R function:
-DataOutlierFiltered <- OutlierFilterMinMaxRSL(Data=DataPreprocessed,
-                                              F=WetDry$F,
-                                              FilterThreshold=FilterThreshold)
+DataOutlierFiltered <- OutlierFilterMinMaxRSL(Data=DataPreprocessed,F=WetDry$F,FilterThreshold=FilterThreshold)
 
-summary(DataOutlierFiltered)
+
 
 
 ######################
@@ -137,14 +120,11 @@ summary(DataOutlierFiltered)
 ######################
 
 # Run R function:
-Pcor <- CorrectMinMaxRSL(Data=DataOutlierFiltered,
-                         Dry=WetDry$Dry,
-                         Pref=Pref)
+Pcor <- CorrectMinMaxRSL(Data=DataOutlierFiltered,Dry=WetDry$Dry,Pref=Pref)
 
-summary(Pcor)
 
-# # If wet-dry classification (function WetDryNearbyLinkApMinMaxRSL) has not been applied, run the R function as follows:
-# Pcor <- CorrectMinMaxRSL(Data=DataPreprocessed,Dry=NULL,Pref=Pref)
+# If wet-dry classification (function WetDryNearbyLinkApMinMaxRSL) has not been applied, run the R function as follows:
+Pcor <- CorrectMinMaxRSL(Data=DataPreprocessed,Dry=NULL,Pref=Pref)
 
 
 
@@ -163,78 +143,52 @@ colnames(kRPowerLawDataV) <- c("f", "a", "b")
 # Run R function:
 StartTime <- proc.time()
 
-Rmean <- RainRetrievalMinMaxRSL(Aa=Aa,
-                                alpha=alpha,
-                                Data=DataOutlierFiltered,
-                                kRPowerLawDataH=kRPowerLawDataH,
-                                kRPowerLawDataV=kRPowerLawDataV,
-                                PmaxCor=Pcor$PmaxCor,
-                                PminCor=Pcor$PminCor,
-                                Pref=Pref)
+Rmean <- RainRetrievalMinMaxRSL(Aa=Aa,alpha=alpha,Data=DataOutlierFiltered,kRPowerLawDataH=kRPowerLawDataH,kRPowerLawDataV=kRPowerLawDataV,PmaxCor=Pcor$PmaxCor,PminCor=Pcor$PminCor,Pref=Pref)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 20 seconds
+cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
-summary(Rmean)
-hist(log(Rmean))
 
-# # If wet-dry classification (function WetDryNearbyLinkApMinMaxRSL) has not been applied, run the R function as follows:
-# StartTime <- proc.time()
-# 
-# Rmean <- RainRetrievalMinMaxRSL(Aa=Aa,alpha=alpha,Data=DataPreprocessed,kRPowerLawDataH=kRPowerLawDataH,kRPowerLawDataV=kRPowerLawDataV,PmaxCor=Pcor$PmaxCor,PminCor=Pcor$PminCor,Pref=Pref)
-# 
-# cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
+# If wet-dry classification (function WetDryNearbyLinkApMinMaxRSL) has not been applied, run the R function as follows:
+StartTime <- proc.time()
+
+Rmean <- RainRetrievalMinMaxRSL(Aa=Aa,alpha=alpha,Data=DataPreprocessed,kRPowerLawDataH=kRPowerLawDataH,kRPowerLawDataV=kRPowerLawDataV,PmaxCor=Pcor$PmaxCor,PminCor=Pcor$PminCor,Pref=Pref)
+
+cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
 
 # Write path-average rainfall data to files:
 # Duration of time interval of sampling strategy (min):
 TIMESTEP <- 15	
-
+	
 # Location of output link data:
 FolderRainEstimates <- paste("LinkPathRainDepths",TIMESTEP,"min",sep="")
-ToFile = FALSE
+ToFile = TRUE
 if (ToFile)
 {	
-  # Create directory for output files:
-  if(!dir.exists(FolderRainEstimates)){ dir.create(FolderRainEstimates) }
-  # Write output to file
-  ID <- unique(DataPreprocessed$ID)
-  t <- sort(unique(DataPreprocessed$DateTime))
-  t_sec <- as.numeric(as.POSIXct(as.character(t), format = "%Y%m%d%H%M"))
-  dt <- min(diff(t_sec))
-  
-  for (i in 1 : length(t))
-  {
-    ind <- which(DataPreprocessed$DateTime == t[i])
-    int_data <- data.frame(ID = DataPreprocessed$ID[ind], 
-                           RainfallDepthPath = Rmean[ind] * dt / 3600, 
-                           PathLength = DataPreprocessed$PathLength[ind], 
-                           XStart = DataPreprocessed$XStart[ind], 
-                           YStart = DataPreprocessed$YStart[ind], 
-                           XEnd = DataPreprocessed$XEnd[ind], 
-                           YEnd = DataPreprocessed$YEnd[ind], 
-                           IntervalNumber = rep(i, length(ind)), 
-                           Frequency = DataPreprocessed$Frequency[ind])
-    
-    Filename <- paste(FolderRainEstimates, "/linkdata_", t[i], ".dat", sep="")
-    write.table(int_data, Filename, row.names = FALSE, col.names = TRUE, append = FALSE, quote = FALSE)
-  }
+	# Create directory for output files:
+	if(!dir.exists(FolderRainEstimates)){ dir.create(FolderRainEstimates) }
+	# Write output to file
+	ID <- unique(DataPreprocessed$ID)
+	t <- sort(unique(DataPreprocessed$DateTime))
+	t_sec <- as.numeric(as.POSIXct(as.character(t), format = "%Y%m%d%H%M"))
+	dt <- min(diff(t_sec))
+	
+	for (i in 1 : length(t))
+	{
+		ind <- which(DataPreprocessed$DateTime == t[i])
+		int_data <- data.frame(ID = DataPreprocessed$ID[ind], RainfallDepthPath = Rmean[ind] * dt / 3600, 
+		PathLength = DataPreprocessed$PathLength[ind], XStart = DataPreprocessed$XStart[ind], 
+		YStart = DataPreprocessed$YStart[ind], XEnd = DataPreprocessed$XEnd[ind], 
+		YEnd = DataPreprocessed$YEnd[ind], IntervalNumber = rep(i, length(ind)), 
+		Frequency = DataPreprocessed$Frequency[ind])
+		
+		Filename <- paste(FolderRainEstimates, "/linkdata_", t[i], ".dat", sep="")
+		write.table(int_data, Filename, row.names = FALSE, col.names = TRUE, append = FALSE, quote = FALSE)
+	}
 }
 # Note that the output files contain rainfall depths (mm). If these data are to be used for the interpolation, they must first be read ("Interpolation.R" does not read these files).
 # Using the data for "Interpolation.R" requires a conversion from rainfall depth (mm) to rainfall intensity (mm/h).
 
-## slow write-to-file, use write_delim() instead
-save(list=ls(), file = "Cmldata_ER2016.RData")
-
-## single dataset for analyses
-CmlRainfall                   <- DataPreprocessed
-CmlRainfall$Pref              <- Pref
-CmlRainfall$PminCor           <- Pcor$PminCor
-CmlRainfall$PmaxCor           <- Pcor$PmaxCor
-CmlRainfall$DryClass          <- WetDry$Dry
-CmlRainfall$RainfallMeanInt   <- Rmean
-CmlRainfall$RainfallDepthPath <- Rmean * dt / 3600
-
-save(CmlRainfall, file = "CmlRainfall_ER2016.RData")
 
 
 
@@ -254,18 +208,8 @@ FolderRainMaps <- paste("RainMapsLinks",TIMESTEP,"min",sep="")
 # Run R function:
 StartTime <- proc.time()
 
-RainFields <- Interpolation(Data=DataPreprocessed,
-                            CoorSystemInputData=NULL,
-                            idp=idp,
-                            IntpMethod=IntpMethod,
-                            nmax=nmax,
-                            NUGGET=NUGGET,
-                            RANGE=RANGE,
-                            RainGrid=RainGrid,
-                            Rmean=Rmean,
-                            SILL=SILL,
-                            Variogram=Variogram,
-                            OutputDir=NULL ) #FolderRainMaps)
+Interpolation(Data=DataPreprocessed,CoorSystemInputData=NULL,idp=idp,IntpMethod=IntpMethod,nmax=nmax,
+NUGGET=NUGGET,RANGE=RANGE,RainGrid=RainGrid,Rmean=Rmean,SILL=SILL,Variogram=Variogram,OutputDir=FolderRainMaps)
 
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
@@ -305,33 +249,33 @@ DateTimeEndRainMaps <- "201109102045"
 
 # Run function RainMapsLinksTimeStep:
 RainMapsLinksTimeStep(AlphaLinksTimeStep=AlphaLinksTimeStep,
-                      AlphaPlotLocation=AlphaPlotLocation,AlphaPolygon=AlphaPolygon,
-                      AutDefineLegendTop=AutDefineLegendTop,BBoxOSMauto=BBoxOSMauto,ColourLinks=ColourLinks,
-                      ColoursNumber=ColoursNumber,ColourPlotLocation=ColourPlotLocation,
-                      ColourPlotLocationText=ColourPlotLocationText,ColourScheme=ColourScheme,
-                      ColourType=ColourType,ConversionDepthToIntensity=ConversionDepthToIntensity,
-                      CoorSystemInputData=CoorSystemInputData,DateTimeEndRainMaps=DateTimeEndRainMaps,
-                      DateTimeStartRainMaps=DateTimeStartRainMaps,ExtraDeg=ExtraDeg,ExtraText=ExtraText,
-                      FigFileLinksTimeStep=FigFileLinksTimeStep,FigHeight=FigHeight,FigWidth=FigWidth,
-                      FileGrid=FileGrid,FilePolygonsGrid=FilePolygonsGrid,FolderFigures=FolderFigures,
-                      FolderRainMaps=FolderRainMaps,FolderRainEstimates=FolderRainEstimates,
-                      FontFamily=FontFamily,GoogleLocDegSpecified=GoogleLocDegSpecified,
-                      GoogleLocLat=GoogleLocLat,GoogleLocLon=GoogleLocLon,GoogleLocName=GoogleLocName,
-                      GoogleLocNameSpecified=GoogleLocNameSpecified,GoogleMapType=GoogleMapType,
-                      GoogleZoomlevel=GoogleZoomlevel,LabelAxisLat=LabelAxisLat,
-                      LabelAxisLonGoogle=LabelAxisLonGoogle,LabelAxisLonOSM=LabelAxisLonOSM,
-                      LabelAxisLonStamen=LabelAxisLonStamen,LatLocation=LatLocation,LatText=LatText,
-                      LegendSize=LegendSize,LegendTitleLinksTimeStep=LegendTitleLinksTimeStep,LonLocation=LonLocation,
-                      LonText=LonText,ManualScale=ManualScale,MapBackground=MapBackground,OSMBottom=OSMBottom,
-                      OSMLeft=OSMLeft,OSMRight=OSMRight,OSMScale=OSMScale,OSMTop=OSMTop,OutputFileType=OutputFileType,
-                      PlotLocation=PlotLocation,PixelBorderCol=PixelBorderCol,
-                      PlotBelowScaleBottom=PlotBelowScaleBottom,PlotLocLinks=PlotLocLinks,
-                      ScaleBottomTimeStep=ScaleBottomTimeStep,ScaleHigh=ScaleHigh,ScaleLow=ScaleLow,
-                      ScaleTopTimeStep=ScaleTopTimeStep,SizeLinks=SizeLinks,SizePixelBorder=SizePixelBorder,
-                      SizePlotLocation=SizePlotLocation,SizePlotTitle=SizePlotTitle,
-                      StamenMapType=StamenMapType,StamenZoomlevel=StamenZoomlevel,
-                      SymbolPlotLocation=SymbolPlotLocation,TitleLinks=TitleLinks,XMiddle=XMiddle,
-                      YMiddle=YMiddle)
+AlphaPlotLocation=AlphaPlotLocation,AlphaPolygon=AlphaPolygon,
+AutDefineLegendTop=AutDefineLegendTop,BBoxOSMauto=BBoxOSMauto,ColourLinks=ColourLinks,
+ColoursNumber=ColoursNumber,ColourPlotLocation=ColourPlotLocation,
+ColourPlotLocationText=ColourPlotLocationText,ColourScheme=ColourScheme,
+ColourType=ColourType,ConversionDepthToIntensity=ConversionDepthToIntensity,
+CoorSystemInputData=CoorSystemInputData,DateTimeEndRainMaps=DateTimeEndRainMaps,
+DateTimeStartRainMaps=DateTimeStartRainMaps,ExtraDeg=ExtraDeg,ExtraText=ExtraText,
+FigFileLinksTimeStep=FigFileLinksTimeStep,FigHeight=FigHeight,FigWidth=FigWidth,
+FileGrid=FileGrid,FilePolygonsGrid=FilePolygonsGrid,FolderFigures=FolderFigures,
+FolderRainMaps=FolderRainMaps,FolderRainEstimates=FolderRainEstimates,
+FontFamily=FontFamily,GoogleLocDegSpecified=GoogleLocDegSpecified,
+GoogleLocLat=GoogleLocLat,GoogleLocLon=GoogleLocLon,GoogleLocName=GoogleLocName,
+GoogleLocNameSpecified=GoogleLocNameSpecified,GoogleMapType=GoogleMapType,
+GoogleZoomlevel=GoogleZoomlevel,LabelAxisLat=LabelAxisLat,
+LabelAxisLonGoogle=LabelAxisLonGoogle,LabelAxisLonOSM=LabelAxisLonOSM,
+LabelAxisLonStamen=LabelAxisLonStamen,LatLocation=LatLocation,LatText=LatText,
+LegendSize=LegendSize,LegendTitleLinksTimeStep=LegendTitleLinksTimeStep,LonLocation=LonLocation,
+LonText=LonText,ManualScale=ManualScale,MapBackground=MapBackground,OSMBottom=OSMBottom,
+OSMLeft=OSMLeft,OSMRight=OSMRight,OSMScale=OSMScale,OSMTop=OSMTop,OutputFileType=OutputFileType,
+PlotLocation=PlotLocation,PixelBorderCol=PixelBorderCol,
+PlotBelowScaleBottom=PlotBelowScaleBottom,PlotLocLinks=PlotLocLinks,
+ScaleBottomTimeStep=ScaleBottomTimeStep,ScaleHigh=ScaleHigh,ScaleLow=ScaleLow,
+ScaleTopTimeStep=ScaleTopTimeStep,SizeLinks=SizeLinks,SizePixelBorder=SizePixelBorder,
+SizePlotLocation=SizePlotLocation,SizePlotTitle=SizePlotTitle,
+StamenMapType=StamenMapType,StamenZoomlevel=StamenZoomlevel,
+SymbolPlotLocation=SymbolPlotLocation,TitleLinks=TitleLinks,XMiddle=XMiddle,
+YMiddle=YMiddle)
 
 
 
@@ -347,33 +291,33 @@ DateTimeEndRainMaps <- "201109110800"
 
 # Run function RainMapsLinksDaily:
 RainMapsLinksDaily(AlphaLinksDaily=AlphaLinksDaily,AlphaPlotLocation=AlphaPlotLocation,
-                   AlphaPolygon=AlphaPolygon,AutDefineLegendTop=AutDefineLegendTop,BBoxOSMauto=BBoxOSMauto,
-                   ColourLinks=ColourLinks,ColoursNumber=ColoursNumber,
-                   ColourPlotLocation=ColourPlotLocation,ColourPlotLocationText=ColourPlotLocationText,
-                   ColourScheme=ColourScheme,ColourType=ColourType,
-                   ConversionDepthToIntensity=ConversionDepthToIntensity,
-                   CoorSystemInputData=CoorSystemInputData,DateTimeEndRainMaps=DateTimeEndRainMaps,
-                   DateTimeStartRainMaps=DateTimeStartRainMaps,ExtraDeg=ExtraDeg,ExtraText=ExtraText,
-                   FigFileLinksDaily=FigFileLinksDaily,FigHeight=FigHeight,FigWidth=FigWidth,
-                   FileGrid=FileGrid,FilePolygonsGrid=FilePolygonsGrid,FolderFigures=FolderFigures,
-                   FolderRainMaps=FolderRainMaps,FolderRainEstimates=FolderRainEstimates,
-                   FontFamily=FontFamily,GoogleLocDegSpecified=GoogleLocDegSpecified,
-                   GoogleLocLat=GoogleLocLat,GoogleLocLon=GoogleLocLon,GoogleLocName=GoogleLocName,
-                   GoogleLocNameSpecified=GoogleLocNameSpecified,GoogleMapType=GoogleMapType,
-                   GoogleZoomlevel=GoogleZoomlevel,LabelAxisLat=LabelAxisLat,
-                   LabelAxisLonGoogle=LabelAxisLonGoogle,LabelAxisLonOSM=LabelAxisLonOSM,
-                   LabelAxisLonStamen=LabelAxisLonStamen,LatLocation=LatLocation,LatText=LatText,
-                   LegendSize=LegendSize,LegendTitleLinksDaily=LegendTitleLinksDaily,LonLocation=LonLocation,LonText=LonText,
-                   ManualScale=ManualScale,MapBackground=MapBackground,OSMBottom=OSMBottom,OSMLeft=OSMLeft,
-                   OSMRight=OSMRight,OSMScale=OSMScale,OSMTop=OSMTop,OutputFileType=OutputFileType,PERIOD=PERIOD,
-                   PlotLocation=PlotLocation,PixelBorderCol=PixelBorderCol,
-                   PlotBelowScaleBottom=PlotBelowScaleBottom,PlotLocLinks=PlotLocLinks,
-                   ScaleBottomDaily=ScaleBottomDaily,ScaleHigh=ScaleHigh,ScaleLow=ScaleLow,
-                   ScaleTopDaily=ScaleTopDaily,SizeLinks=SizeLinks,SizePixelBorder=SizePixelBorder,
-                   SizePlotLocation=SizePlotLocation,SizePlotTitle=SizePlotTitle,
-                   StamenMapType=StamenMapType,StamenZoomlevel=StamenZoomlevel,
-                   SymbolPlotLocation=SymbolPlotLocation,TIMESTEP=TIMESTEP,TitleLinks=TitleLinks,
-                   XMiddle=XMiddle,YMiddle=YMiddle)
+AlphaPolygon=AlphaPolygon,AutDefineLegendTop=AutDefineLegendTop,BBoxOSMauto=BBoxOSMauto,
+ColourLinks=ColourLinks,ColoursNumber=ColoursNumber,
+ColourPlotLocation=ColourPlotLocation,ColourPlotLocationText=ColourPlotLocationText,
+ColourScheme=ColourScheme,ColourType=ColourType,
+ConversionDepthToIntensity=ConversionDepthToIntensity,
+CoorSystemInputData=CoorSystemInputData,DateTimeEndRainMaps=DateTimeEndRainMaps,
+DateTimeStartRainMaps=DateTimeStartRainMaps,ExtraDeg=ExtraDeg,ExtraText=ExtraText,
+FigFileLinksDaily=FigFileLinksDaily,FigHeight=FigHeight,FigWidth=FigWidth,
+FileGrid=FileGrid,FilePolygonsGrid=FilePolygonsGrid,FolderFigures=FolderFigures,
+FolderRainMaps=FolderRainMaps,FolderRainEstimates=FolderRainEstimates,
+FontFamily=FontFamily,GoogleLocDegSpecified=GoogleLocDegSpecified,
+GoogleLocLat=GoogleLocLat,GoogleLocLon=GoogleLocLon,GoogleLocName=GoogleLocName,
+GoogleLocNameSpecified=GoogleLocNameSpecified,GoogleMapType=GoogleMapType,
+GoogleZoomlevel=GoogleZoomlevel,LabelAxisLat=LabelAxisLat,
+LabelAxisLonGoogle=LabelAxisLonGoogle,LabelAxisLonOSM=LabelAxisLonOSM,
+LabelAxisLonStamen=LabelAxisLonStamen,LatLocation=LatLocation,LatText=LatText,
+LegendSize=LegendSize,LegendTitleLinksDaily=LegendTitleLinksDaily,LonLocation=LonLocation,LonText=LonText,
+ManualScale=ManualScale,MapBackground=MapBackground,OSMBottom=OSMBottom,OSMLeft=OSMLeft,
+OSMRight=OSMRight,OSMScale=OSMScale,OSMTop=OSMTop,OutputFileType=OutputFileType,PERIOD=PERIOD,
+PlotLocation=PlotLocation,PixelBorderCol=PixelBorderCol,
+PlotBelowScaleBottom=PlotBelowScaleBottom,PlotLocLinks=PlotLocLinks,
+ScaleBottomDaily=ScaleBottomDaily,ScaleHigh=ScaleHigh,ScaleLow=ScaleLow,
+ScaleTopDaily=ScaleTopDaily,SizeLinks=SizeLinks,SizePixelBorder=SizePixelBorder,
+SizePlotLocation=SizePlotLocation,SizePlotTitle=SizePlotTitle,
+StamenMapType=StamenMapType,StamenZoomlevel=StamenZoomlevel,
+SymbolPlotLocation=SymbolPlotLocation,TIMESTEP=TIMESTEP,TitleLinks=TitleLinks,
+XMiddle=XMiddle,YMiddle=YMiddle)
 
 
 
@@ -393,33 +337,33 @@ FolderRadarRainMapsTimeStep <- "Radar5min"
 
 # Run function RainMapsRadarsTimeStep:
 RainMapsRadarsTimeStep(AlphaPlotLocation=AlphaPlotLocation,AlphaPolygon=AlphaPolygon,
-                       AutDefineLegendTop=AutDefineLegendTop,BBoxOSMauto=BBoxOSMauto,
-                       ColoursNumber=ColoursNumber,ColourPlotLocation=ColourPlotLocation,
-                       ColourPlotLocationText=ColourPlotLocationText,ColourScheme=ColourScheme,
-                       ColourType=ColourType,CoorSystemInputData=CoorSystemInputData,ExtraDeg=ExtraDeg,
-                       ExtraText=ExtraText,FigFileRadarsTimeStep=FigFileRadarsTimeStep,FigHeight=FigHeight,
-                       FigWidth=FigWidth,FileGrid=FileGrid,FilePolygonsGrid=FilePolygonsGrid,
-                       FolderFigures=FolderFigures,FolderRadarRainMapsTimeStep=FolderRadarRainMapsTimeStep,
-                       FontFamily=FontFamily,GoogleLocDegSpecified=GoogleLocDegSpecified,
-                       GoogleLocLat=GoogleLocLat,GoogleLocLon=GoogleLocLon,GoogleLocName=GoogleLocName,
-                       GoogleLocNameSpecified=GoogleLocNameSpecified,GoogleMapType=GoogleMapType,
-                       GoogleZoomlevel=GoogleZoomlevel,LabelAxisLat=LabelAxisLat,
-                       LabelAxisLonGoogle=LabelAxisLonGoogle,LabelAxisLonOSM=LabelAxisLonOSM,
-                       LabelAxisLonStamen=LabelAxisLonStamen,LatLocation=LatLocation,LatText=LatText,
-                       LegendSize=LegendSize,LegendTitleRadarsTimeStep=LegendTitleRadarsTimeStep,LonLocation=LonLocation,
-                       LonText=LonText,ManualScale=ManualScale,MapBackground=MapBackground,
-                       OSMBottom=OSMBottom,OSMLeft=OSMLeft,OSMRight=OSMRight,OSMScale=OSMScale,OSMTop=OSMTop,
-                       OutputFileType=OutputFileType,PathRadarRainfallDepth=PathRadarRainfallDepth,PERIOD=PERIOD,
-                       PlotLocation=PlotLocation,PixelBorderCol=PixelBorderCol,PlotBelowScaleBottom=PlotBelowScaleBottom,
-                       ScaleBottomTimeStep=ScaleBottomTimeStep,ScaleHigh=ScaleHigh,ScaleLow=ScaleLow,
-                       ScaleTopTimeStep=ScaleTopTimeStep,SizePixelBorder=SizePixelBorder,
-                       SizePlotLocation=SizePlotLocation,SizePlotTitle=SizePlotTitle,
-                       StamenMapType=StamenMapType,StamenZoomlevel=StamenZoomlevel,
-                       SymbolPlotLocation=SymbolPlotLocation,TIMESTEP=TIMESTEP,TimeZone=TimeZone,
-                       TitleRadars=TitleRadars,XMiddle=XMiddle,YMiddle=YMiddle)
+AutDefineLegendTop=AutDefineLegendTop,BBoxOSMauto=BBoxOSMauto,
+ColoursNumber=ColoursNumber,ColourPlotLocation=ColourPlotLocation,
+ColourPlotLocationText=ColourPlotLocationText,ColourScheme=ColourScheme,
+ColourType=ColourType,CoorSystemInputData=CoorSystemInputData,ExtraDeg=ExtraDeg,
+ExtraText=ExtraText,FigFileRadarsTimeStep=FigFileRadarsTimeStep,FigHeight=FigHeight,
+FigWidth=FigWidth,FileGrid=FileGrid,FilePolygonsGrid=FilePolygonsGrid,
+FolderFigures=FolderFigures,FolderRadarRainMapsTimeStep=FolderRadarRainMapsTimeStep,
+FontFamily=FontFamily,GoogleLocDegSpecified=GoogleLocDegSpecified,
+GoogleLocLat=GoogleLocLat,GoogleLocLon=GoogleLocLon,GoogleLocName=GoogleLocName,
+GoogleLocNameSpecified=GoogleLocNameSpecified,GoogleMapType=GoogleMapType,
+GoogleZoomlevel=GoogleZoomlevel,LabelAxisLat=LabelAxisLat,
+LabelAxisLonGoogle=LabelAxisLonGoogle,LabelAxisLonOSM=LabelAxisLonOSM,
+LabelAxisLonStamen=LabelAxisLonStamen,LatLocation=LatLocation,LatText=LatText,
+LegendSize=LegendSize,LegendTitleRadarsTimeStep=LegendTitleRadarsTimeStep,LonLocation=LonLocation,
+LonText=LonText,ManualScale=ManualScale,MapBackground=MapBackground,
+OSMBottom=OSMBottom,OSMLeft=OSMLeft,OSMRight=OSMRight,OSMScale=OSMScale,OSMTop=OSMTop,
+OutputFileType=OutputFileType,PathRadarRainfallDepth=PathRadarRainfallDepth,PERIOD=PERIOD,
+PlotLocation=PlotLocation,PixelBorderCol=PixelBorderCol,PlotBelowScaleBottom=PlotBelowScaleBottom,
+ScaleBottomTimeStep=ScaleBottomTimeStep,ScaleHigh=ScaleHigh,ScaleLow=ScaleLow,
+ScaleTopTimeStep=ScaleTopTimeStep,SizePixelBorder=SizePixelBorder,
+SizePlotLocation=SizePlotLocation,SizePlotTitle=SizePlotTitle,
+StamenMapType=StamenMapType,StamenZoomlevel=StamenZoomlevel,
+SymbolPlotLocation=SymbolPlotLocation,TIMESTEP=TIMESTEP,TimeZone=TimeZone,
+TitleRadars=TitleRadars,XMiddle=XMiddle,YMiddle=YMiddle)
 
 
-
+	
 
 ##########################
 # 8.4 RainMapsRadarsDaily#
@@ -439,31 +383,31 @@ FolderRadarRainMapsDaily <- "Radar24H"
 
 # Run function RainMapsRadarsDaily:
 RainMapsRadarsDaily(AlphaPlotLocation=AlphaPlotLocation,AlphaPolygon=AlphaPolygon,
-                    AutDefineLegendTop=AutDefineLegendTop,BBoxOSMauto=BBoxOSMauto,
-                    ColoursNumber=ColoursNumber,ColourPlotLocation=ColourPlotLocation,
-                    ColourPlotLocationText=ColourPlotLocationText,ColourScheme=ColourScheme,
-                    ColourType=ColourType,CoorSystemInputData=CoorSystemInputData,DateMap=DateMap,
-                    ExtraDeg=ExtraDeg,ExtraText=ExtraText,FigFileRadarsDaily=FigFileRadarsDaily,
-                    FigHeight=FigHeight,FigWidth=FigWidth,FileGrid=FileGrid,
-                    FileNameRadarDaily=FileNameRadarDaily,FilePolygonsGrid=FilePolygonsGrid,
-                    FolderFigures=FolderFigures,FolderRadarRainMapsDaily=FolderRadarRainMapsDaily,
-                    FontFamily=FontFamily,GoogleLocDegSpecified=GoogleLocDegSpecified,
-                    GoogleLocLat=GoogleLocLat,GoogleLocLon=GoogleLocLon,GoogleLocName=GoogleLocName,
-                    GoogleLocNameSpecified=GoogleLocNameSpecified,GoogleMapType=GoogleMapType,
-                    GoogleZoomlevel=GoogleZoomlevel,LabelAxisLat=LabelAxisLat,
-                    LabelAxisLonGoogle=LabelAxisLonGoogle,LabelAxisLonOSM=LabelAxisLonOSM,
-                    LabelAxisLonStamen=LabelAxisLonStamen,LatLocation=LatLocation,LatText=LatText,
-                    LegendSize=LegendSize,LegendTitleRadarsDaily=LegendTitleRadarsDaily,LonLocation=LonLocation,
-                    LonText=LonText,ManualScale=ManualScale,MapBackground=MapBackground,
-                    OSMBottom=OSMBottom,OSMLeft=OSMLeft,OSMRight=OSMRight,OSMScale=OSMScale,
-                    OSMTop=OSMTop,OutputFileType=OutputFileType,PathRadarRainfallDepth=PathRadarRainfallDepth,
-                    PERIOD=PERIOD,PlotLocation=PlotLocation,PixelBorderCol=PixelBorderCol,
-                    PlotBelowScaleBottom=PlotBelowScaleBottom,ScaleBottomDaily=ScaleBottomDaily,
-                    ScaleHigh=ScaleHigh,ScaleLow=ScaleLow,ScaleTopDaily=ScaleTopDaily,
-                    SizePixelBorder=SizePixelBorder,SizePlotLocation=SizePlotLocation,
-                    SizePlotTitle=SizePlotTitle,StamenMapType=StamenMapType,
-                    StamenZoomlevel=StamenZoomlevel,SymbolPlotLocation=SymbolPlotLocation,
-                    TimeZone=TimeZone,TitleRadars=TitleRadars,XMiddle=XMiddle,YMiddle=YMiddle)
+AutDefineLegendTop=AutDefineLegendTop,BBoxOSMauto=BBoxOSMauto,
+ColoursNumber=ColoursNumber,ColourPlotLocation=ColourPlotLocation,
+ColourPlotLocationText=ColourPlotLocationText,ColourScheme=ColourScheme,
+ColourType=ColourType,CoorSystemInputData=CoorSystemInputData,DateMap=DateMap,
+ExtraDeg=ExtraDeg,ExtraText=ExtraText,FigFileRadarsDaily=FigFileRadarsDaily,
+FigHeight=FigHeight,FigWidth=FigWidth,FileGrid=FileGrid,
+FileNameRadarDaily=FileNameRadarDaily,FilePolygonsGrid=FilePolygonsGrid,
+FolderFigures=FolderFigures,FolderRadarRainMapsDaily=FolderRadarRainMapsDaily,
+FontFamily=FontFamily,GoogleLocDegSpecified=GoogleLocDegSpecified,
+GoogleLocLat=GoogleLocLat,GoogleLocLon=GoogleLocLon,GoogleLocName=GoogleLocName,
+GoogleLocNameSpecified=GoogleLocNameSpecified,GoogleMapType=GoogleMapType,
+GoogleZoomlevel=GoogleZoomlevel,LabelAxisLat=LabelAxisLat,
+LabelAxisLonGoogle=LabelAxisLonGoogle,LabelAxisLonOSM=LabelAxisLonOSM,
+LabelAxisLonStamen=LabelAxisLonStamen,LatLocation=LatLocation,LatText=LatText,
+LegendSize=LegendSize,LegendTitleRadarsDaily=LegendTitleRadarsDaily,LonLocation=LonLocation,
+LonText=LonText,ManualScale=ManualScale,MapBackground=MapBackground,
+OSMBottom=OSMBottom,OSMLeft=OSMLeft,OSMRight=OSMRight,OSMScale=OSMScale,
+OSMTop=OSMTop,OutputFileType=OutputFileType,PathRadarRainfallDepth=PathRadarRainfallDepth,
+PERIOD=PERIOD,PlotLocation=PlotLocation,PixelBorderCol=PixelBorderCol,
+PlotBelowScaleBottom=PlotBelowScaleBottom,ScaleBottomDaily=ScaleBottomDaily,
+ScaleHigh=ScaleHigh,ScaleLow=ScaleLow,ScaleTopDaily=ScaleTopDaily,
+SizePixelBorder=SizePixelBorder,SizePlotLocation=SizePlotLocation,
+SizePlotTitle=SizePlotTitle,StamenMapType=StamenMapType,
+StamenZoomlevel=StamenZoomlevel,SymbolPlotLocation=SymbolPlotLocation,
+TimeZone=TimeZone,TitleRadars=TitleRadars,XMiddle=XMiddle,YMiddle=YMiddle)
 
 
 
@@ -490,7 +434,7 @@ ConversionIntensityToDepth <- TIMESTEP/MinutesHour
 FolderRainMaps <- paste("RainMapsLinks",TIMESTEP,"min",sep="")
 # Make list of input files: 
 Files <- list.files(path = FolderRainMaps, all.files=FALSE,
-                    full.names=TRUE, recursive=FALSE, pattern="linkmap")
+full.names=TRUE, recursive=FALSE, pattern="linkmap")
 # Select date and time for which links are to be plotted:
 DateTime <- "201109110200"
 condTime <- grep(DateTime,Files)
@@ -513,7 +457,7 @@ revgeocode(c(Lon,Lat))
 # If you would like to know the rainfall depth for a street name and municipality, R can provide you with the location in degrees:
 # Give latitude and longitude for location known by street name and municipality:
 geocode("Domplein 1, Utrecht")
-
+    
 # Please note that revgeocode & geocode only work when Google API key has been obtained.
 
 
@@ -528,7 +472,7 @@ TIMESTEP <- 15
 FolderRainEstimates <- paste("LinkPathRainDepths",TIMESTEP,"min",sep="")
 # Make list of input files: 
 Files <- list.files(path = FolderRainEstimates, all.files=FALSE,
-                    full.names=TRUE, recursive=FALSE, pattern="linkdata")
+full.names=TRUE, recursive=FALSE, pattern="linkdata")
 # Select date and time for which links are to be plotted:
 DateTime <- "201109110200"
 condTime <- grep(DateTime,Files)
@@ -542,18 +486,18 @@ FigWidth <- 1600
 
 # Plot link locations on a map:
 PlotLinkLocations(AlphaLinkLocations=AlphaLinkLocations,BBoxOSMauto=BBoxOSMauto,
-                  OSMBottom=OSMBottom,ColourLinks=ColourLinks,ColourType=ColourType,dataf=dataf,
-                  DateTime=DateTime,ExtraTextLinkLocations=ExtraTextLinkLocations,
-                  FigFileLinkLocations=FigFileLinkLocations,FigHeight=FigHeight,
-                  FigWidth=FigWidth,FilePolygonsGrid=FilePolygonsGrid,FolderFigures=FolderFigures,
-                  FontFamily=FontFamily,GoogleLocDegSpecified=GoogleLocDegSpecified,
-                  GoogleLocLat=GoogleLocLat,GoogleLocLon=GoogleLocLon,GoogleLocName=GoogleLocName,
-                  GoogleLocNameSpecified=GoogleLocNameSpecified,GoogleMapType=GoogleMapType,
-                  GoogleZoomlevel=GoogleZoomlevel,LabelAxisLat=LabelAxisLat,
-                  LabelAxisLonGoogle=LabelAxisLonGoogle,LabelAxisLonOSM=LabelAxisLonOSM,
-                  LabelAxisLonStamen=LabelAxisLonStamen,MapBackground=MapBackground,OSMLeft=OSMLeft,
-                  OSMRight=OSMRight,OSMScale=OSMScale,OSMTop=OSMTop,OutputFileType=OutputFileType,
-                  SizeLinks=SizeLinks,SizePlotTitle=SizePlotTitle,StamenMapType=StamenMapType,
-                  StamenZoomlevel=StamenZoomlevel,TitleLinkLocations=TitleLinkLocations)
+OSMBottom=OSMBottom,ColourLinks=ColourLinks,ColourType=ColourType,dataf=dataf,
+DateTime=DateTime,ExtraTextLinkLocations=ExtraTextLinkLocations,
+FigFileLinkLocations=FigFileLinkLocations,FigHeight=FigHeight,
+FigWidth=FigWidth,FilePolygonsGrid=FilePolygonsGrid,FolderFigures=FolderFigures,
+FontFamily=FontFamily,GoogleLocDegSpecified=GoogleLocDegSpecified,
+GoogleLocLat=GoogleLocLat,GoogleLocLon=GoogleLocLon,GoogleLocName=GoogleLocName,
+GoogleLocNameSpecified=GoogleLocNameSpecified,GoogleMapType=GoogleMapType,
+GoogleZoomlevel=GoogleZoomlevel,LabelAxisLat=LabelAxisLat,
+LabelAxisLonGoogle=LabelAxisLonGoogle,LabelAxisLonOSM=LabelAxisLonOSM,
+LabelAxisLonStamen=LabelAxisLonStamen,MapBackground=MapBackground,OSMLeft=OSMLeft,
+OSMRight=OSMRight,OSMScale=OSMScale,OSMTop=OSMTop,OutputFileType=OutputFileType,
+SizeLinks=SizeLinks,SizePlotTitle=SizePlotTitle,StamenMapType=StamenMapType,
+StamenZoomlevel=StamenZoomlevel,TitleLinkLocations=TitleLinkLocations)
 
 
