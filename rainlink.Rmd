@@ -227,14 +227,18 @@ Interpolation will be performed for hourly accumulated rainfall, so cumulative s
 accu1hr <- function(CmlRainfall, TIMESTEP){
   frac <- 60/TIMESTEP
   dts  <- sort(unique(CmlRainfall$DateTime))
+  totdts <- length(dts)
   
   CmlHourlyData <- data.frame()
   hourlydepth   <- 0
   count         <- 0
+
+  StartTime <- proc.time()
   
   for(seldt in dts){                         # Ciclo sui TIMESTEP
     bool1 <- CmlRainfall$DateTime == seldt
     ids   <- unique(CmlRainfall$ID[bool1])
+    numdts <- which(dts == seldt)
     
     for(selid in ids){                       # Ciclo sugli ID
       bool2 <- CmlRainfall$ID == selid
@@ -251,7 +255,7 @@ accu1hr <- function(CmlRainfall, TIMESTEP){
       count       <- count + 1
       
       if(substr(seldt,11,12)=='00'          # Cerco le ore intere
-         & which(dts == seldt) > frac - 1   # Attendo che sia passata almeno la prima ora
+         & numdts > frac - 1                # Attendo che sia passata almeno la prima ora
          & count == frac                    # Ho tutte le 4 misure dell'ora
          & length(j) != 0){                 # L'ora esiste per il link selezionato
         CmlHourlyData_row <- cbind(CmlRainfall[j,
@@ -273,6 +277,11 @@ accu1hr <- function(CmlRainfall, TIMESTEP){
       } 
       
     }
+    elapsed_t <- round((proc.time()-StartTime)[3],digits=1
+    remaining_t <- elapsed_t
+    cat(sprintf("\r%d of %d , remaining: %f", numdts, totdts, elapsed_t/numdts*(totdts-numdts)))
+
+    
   }
   return(CmlHourlyData)
 }
