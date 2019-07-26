@@ -51,7 +51,7 @@ if ("Polarization" %in% names(Linkdata)==FALSE)
 
 When no information on polarization is provided, the above code creates a column of NA for Polarization. In the function "RainRetrievalMinMaxRSL.R" links with
 NA values for polarization are processed with a & b values determined for vertically polarized signals.
-If information on polarization of links is available, use H for horizontally polarized & V for vertically polarized in Linkdata$Polarization.
+If information on polarization of links is available, use H for horizontally polarized & V for vertically polarized in "Linkdata Polarization".
 H, V & NA may occur in the same Linkdata file.
 
 
@@ -303,11 +303,12 @@ accu1hr <- function(CmlRainfall, TIMESTEP){
 
 CmlHourlyData <- accu1hr(CmlRainfall = CmlRainfall, #[200000:300000,], # evento 3 marzo
                          TIMESTEP = TIMESTEP)
-summary(CmlHourlyData)
-# plot(CmlHourlyData$DateTime, CmlHourlyData$HourlyRainfallDepth)
-
+                         
 save(CmlHourlyData, file = "HourlyRainfall_ER2016.RData")
 
+
+summary(CmlHourlyData)
+# plot(CmlHourlyData$DateTime, CmlHourlyData$HourlyRainfallDepth)
 ```
 
 
@@ -336,6 +337,8 @@ RainFields <- Interpolation(Data = CmlHourlyData,
                             RainGrid = RainGrid,
                             Rmean = CmlHourlyData$HourlyRainfallDepth,
                             OutputDir = NULL)  # FolderRainMaps
+
+save(RainFields, file = "IntpRainFields_ER2016.RData")
 
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
