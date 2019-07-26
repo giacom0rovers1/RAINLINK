@@ -222,11 +222,12 @@ nmax <- 50	# for local kriging: the number of nearest observations that should b
 # For "OK": which variogram to use?
 # Use "ClimVar" for climatological spherical variogram model.
 # Use "Manual" for spherical variogram model with nugget, sill, and range values manually specified below.
-Variogram <- "ClimVar"
-NUGGET <- 0.37	# mm^2 
-SILL <- 3.7	# mm^2 
-RANGE <- 18.7	# km
 
+# Parameters for interpolation of hourly accumulated rainfall
+Variogram <- "Manual"
+NUGGET <- 0.024	# mm^2 
+SILL   <- 0.24	# mm^2 
+RANGE  <- 35.4	# km
 
 
 ###################
