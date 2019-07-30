@@ -230,7 +230,7 @@ Interpolation will be performed for hourly accumulated rainfall, so cumulative s
 # Compute hourly accumulated rainfall as sum of the 15min rainfall depths
 CmlHourlyData <- fast50x_accu1hr(CmlRainfall = CmlRainfall)
 
-save(CmlHourlyData, file = "HourlyRainfall_ER2016v2.RData", version = 2)
+save(CmlHourlyData, file = "HourlyRainfall_ER2016.RData")
 summary(CmlHourlyData)
 
 plot(s2p(CmlRainfall$DateTime[220000:250000]), 

@@ -146,8 +146,7 @@ if (ToFile)
 # CmlRainfall <- read.csv(file = "CmlRainfall_ER2016.RData")
 
 # Compute hourly accumulated rainfall as sum of the 15min rainfall depths
-CmlHourlyData <- accu1hr(CmlRainfall = CmlRainfall[220000:250000,], # evento 3 marzo
-                         TIMESTEP = TIMESTEP)
+CmlHourlyData <- fast50x_accu1hr(CmlRainfall = CmlRainfall)
 
 save(CmlHourlyData, file = "HourlyRainfall_NLAR20_ER2016.RData")
 
