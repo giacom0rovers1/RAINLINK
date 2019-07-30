@@ -87,7 +87,7 @@ accu1hr <- function(CmlRainfall, TIMESTEP){
 
 
 # hourly accumulation on 15 min CML data
-new_accu1hr <- function(CmlRainfall){
+fast50x_accu1hr <- function(CmlRainfall){
   require(zoo)
   startTime <- proc.time()
   
@@ -101,12 +101,11 @@ new_accu1hr <- function(CmlRainfall){
                          align="right", 
                          fill = NA)
   
-  samelink <- rollapply(CmlRainfall$ID, width = 2, by = 1,
-                        FUN = function(x) x[1]==x[2],
+  samelink <- rollapply(CmlRainfall$ID, width = 4, by = 1,
+                        FUN = function(x) length(unique(x)) == 1,
                         align="right", 
                         fill = NA)
-  stopifnot(length(which(samelink==F)) == (length(unique(CmlRainfall$ID)) - 1))
-  
+
   sel <- wholehour & samelink
   
   

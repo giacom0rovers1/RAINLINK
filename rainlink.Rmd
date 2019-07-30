@@ -29,7 +29,7 @@ MaxFrequency is missing, than the function will not execute properly.
 
 # 0. Load R libraries, parameter values, and other settings.
 This also loads the RAINLINK package.           
-```{r Setup}
+```{r Setup, include=FALSE}
 rm(list = ls())
 source("Config.R") 
 source("functions.R")
@@ -226,16 +226,19 @@ Using the data for "Interpolation.R" requires a conversion from rainfall depth (
 Interpolation will be performed for hourly accumulated rainfall, so cumulative sums have to be performed
 ```{r}
 # load("CmlRainfall_ER2016.RData")
-# CmlRainfall <- read.csv(file = "CmlRainfall_ER2016.RData")
 
 # Compute hourly accumulated rainfall as sum of the 15min rainfall depths
-CmlHourlyData <- accu1hr(CmlRainfall = CmlRainfall[220000:250000,], # evento 3 marzo
-                         TIMESTEP = TIMESTEP)
+CmlHourlyData <- fast50x_accu1hr(CmlRainfall = CmlRainfall)
 
-save(CmlHourlyData, file = "HourlyRainfall_ER2016.RData")
+save(CmlHourlyData, file = "HourlyRainfall_ER2016v2.RData", version = 2)
 summary(CmlHourlyData)
-plot(s2p(CmlRainfall$DateTime[220000:250000]), CmlRainfall$RainfallMeanInt[220000:250000], col = "red") +
-  points(s2p(CmlHourlyData$DateTime), CmlHourlyData$HourlyRainfallDepth, pch = "+")
+
+plot(s2p(CmlRainfall$DateTime[220000:250000]), 
+     CmlRainfall$RainfallMeanInt[220000:250000], 
+     col = "red") +
+  points(s2p(CmlHourlyData$DateTime), 
+         CmlHourlyData$HourlyRainfallDepth, 
+         pch = "+")
 
 ```
 
