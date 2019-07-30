@@ -83,3 +83,45 @@ accu1hr <- function(CmlRainfall, TIMESTEP){
   cat(sprintf("\nElapsed %.1f s", elapsed_start))
   return(CmlHourlyData)
 }
+
+
+
+# hourly accumulation on 15 min CML data
+new_accu1hr <- function(CmlRainfall){
+  require(zoo)
+  startTime <- proc.time()
+  
+  CmlRainfall <- CmlRainfall[order(CmlRainfall$ID, CmlRainfall$DateTime),]
+  
+  log1 <- substr(CmlRainfall$DateTime,11,12)=='00'
+  sign <- c(T,F,F,F,T)
+  
+  wholehour <- rollapply(log1, width = 5, by = 1,
+                         FUN = function(x) identical(x,y=sign),
+                         align="right", 
+                         fill = NA)
+  
+  samelink <- rollapply(CmlRainfall$ID, width = 2, by = 1,
+                        FUN = function(x) x[1]==x[2],
+                        align="right", 
+                        fill = NA)
+  stopifnot(length(which(samelink==F)) == (length(unique(CmlRainfall$ID)) - 1))
+  
+  sel <- wholehour & samelink
+  
+  
+  fouravg <- rollapplyr(CmlRainfall$RainfallMeanInt, width=4, by=1,
+                        FUN = mean,
+                        align="right", 
+                        fill = NA)
+  
+  CmlHourlyData <- cbind(CmlRainfall[sel,
+                                     c("DateTime","Frequency", "PathLength",  "XStart", 
+                                       "YStart", "XEnd", "YEnd", "Label", 
+                                       "Polarization", "Direction",  "ID")],
+                         HourlyRainfallDepth = fouravg[sel])
+  
+  elapsed_start <- round((proc.time()-startTime)[3],digits=1)
+  cat(sprintf("\nElapsed %.1f s", elapsed_start))
+  return(CmlHourlyData)
+}
