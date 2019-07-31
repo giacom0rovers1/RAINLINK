@@ -202,7 +202,7 @@ FileRainRetrHorizontal <- "ab_values_horizontal.txt"
 ###################
 
 # File with interpolation grid in same coordinate system as CoorSystemInputData:
-FileGrid <- "../ArticoloCML-RER_RainBOproject/codice_giacomo/gestione_dati/interpolation_grids/IntpGridEMR.dat"	# WGS84 (longitude, latitude (degrees))
+FileGrid <- "IntpGrid5x5_BO+PR.dat"	# WGS84 (longitude, latitude (degrees))
 
 # For "IDW":
 # Specify the inverse distance weighting power:
@@ -259,7 +259,7 @@ ExtraDeg <- 0.05
 
 
 # Name of file with polygons of interpolation grid in same coordinate system as CoorSystemInputData:
-FilePolygonsGrid <- "../ArticoloCML-RER_RainBOproject/codice_giacomo/gestione_dati/interpolation_grids/PolygGridEMR.dat"	# WGS84 (longitude, latitude (degrees))
+FilePolygonsGrid <- "PolyGrid5x5_BO+PR.dat"	# WGS84 (longitude, latitude (degrees))
 
 
 # Folder name of figures:

@@ -143,7 +143,6 @@ if (ToFile)
 # 7. Interpolation
 
 # load("CmlRainfall_ER2016.RData")
-# CmlRainfall <- read.csv(file = "CmlRainfall_ER2016.RData")
 
 # Compute hourly accumulated rainfall as sum of the 15min rainfall depths
 CmlHourlyData <- fast50x_accu1hr(CmlRainfall = CmlRainfall)
@@ -156,7 +155,7 @@ save(CmlHourlyData, file = "HourlyRainfall_NLAR20_ER2016.RData")
 RainGrid <- read.table(FileGrid, header = TRUE, sep=",")
 
 # # Location of output link data:
-# FolderRainMaps <- "HourlyRainMaps"
+FolderRainMaps <- "HourlyRainMaps"
 
 # Run R function:
 StartTime <- proc.time()

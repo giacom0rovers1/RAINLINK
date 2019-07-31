@@ -82,7 +82,7 @@ accu1hr <- function(CmlRainfall, TIMESTEP){
   }
   cat(sprintf("\nElapsed %.1f s", elapsed_start))
   return(CmlHourlyData)
-}
+}# VERY SLOW
 
 
 
@@ -123,4 +123,70 @@ fast50x_accu1hr <- function(CmlRainfall){
   elapsed_start <- round((proc.time()-startTime)[3],digits=1)
   cat(sprintf("\nElapsed %.1f s", elapsed_start))
   return(CmlHourlyData)
+}
+
+
+################################################################################################
+
+## POLYGONS GRIDS GENERATOR FUNCTION
+# Creates polygons for printing function from the interpolation grid.
+# Giacomo Roversi, 13 sept 2016 
+# Corrected 29 oct 2017 
+# Revised 31 jul 2019
+
+PolyGridGen <- function(IntpGrid, SaveToFile){
+  cat(sprintf('Loading...\n'))
+  require(sp)
+  require(rgdal)
+  
+  ok   <- 0
+  jump <- 0
+  
+  while (ok != 1){
+    width <- 1
+    print(jump)
+    
+    # look for X-width of the grid
+    while(IntpGrid[(jump+width+1),1] != IntpGrid[(jump+1),1]){
+      width <- width+1
+    }
+    
+    # search for a width larger than 10, otherwise skip to the next line
+    if (width < 5){
+      jump <- jump + width
+      next()
+    }else{
+      ok <- 1
+    }
+    
+    cat(sprintf('First acceptable line width: %d points\n', width)) 
+  }
+  step <- abs(IntpGrid[(jump+2),] - IntpGrid[(jump+width+1),]) # vector of the grid-side increments
+  halfstep <- step/2						                               # compute the semi-diagonal
+  polygons <- data.frame(X=numeric(), Y=numeric())
+  totalpoints <- length(IntpGrid[,1])
+  #cat(sprintf('IntpGrid dimensions: \n lon %d ° \n lat %d °\n', step[1], step[2]))
+  print(step)
+  
+  for(i in 1:totalpoints){
+    center <- IntpGrid[i,]
+    r      <- 6*(i-1)
+    
+    polygons[r+1,] <- center + halfstep*c(-1,1)
+    polygons[r+2,] <- center + halfstep*c(1,1)
+    polygons[r+3,] <- center + halfstep*c(1,-1)
+    polygons[r+4,] <- center + halfstep*c(-1,-1)
+    polygons[r+5,] <- center + halfstep*c(-1,1)
+    polygons[r+6,] <- NA
+    
+    cat(sprintf('Generating %d of %d polygons\r', i, totalpoints))
+  }
+  cat(sprintf('Generating %d of %d polygons\n', i, totalpoints))
+  stopifnot(length(polygons[,1])==(6*totalpoints))
+  
+  if(SaveToFile){
+    write.table(polygons, file='PolyGrid5x5_BO+PR.dat', row.names=F)
+  }
+  
+  return(polygons)
 }

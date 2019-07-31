@@ -249,9 +249,10 @@ Interpolation over the grid
 
 # Read grid onto which data are interpolated
 RainGrid <- read.table(FileGrid, header = TRUE, sep=",")
+# PolyGrid <- PolyGridGen(IntpGrid = RainGrid, SaveToFile = TRUE)
 
 # # Location of output link data:
-# FolderRainMaps <- "HourlyRainMaps"
+FolderRainMaps <- "HourlyRainMaps"
 
 # Run R function:
 StartTime <- proc.time()
