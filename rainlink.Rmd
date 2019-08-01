@@ -233,18 +233,18 @@ CmlHourlyData <- fast50x_accu1hr(CmlRainfall = CmlRainfall)
 save(CmlHourlyData, file = "HourlyRainfall_ER2016.RData")
 summary(CmlHourlyData)
 
-plot(s2p(CmlRainfall$DateTime[220000:250000]), 
-     CmlRainfall$RainfallMeanInt[220000:250000], 
-     col = "red") +
-  points(s2p(CmlHourlyData$DateTime), 
-         CmlHourlyData$HourlyRainfallDepth, 
-         pch = "+")
+# plot(s2p(CmlRainfall$DateTime[220000:250000]), 
+#      CmlRainfall$RainfallMeanInt[220000:250000], 
+#      col = "red") +
+#   points(s2p(CmlHourlyData$DateTime), 
+#          CmlHourlyData$HourlyRainfallDepth, 
+#          pch = "+")
 
 ```
 
 
 Interpolation over the grid
-```{r}
+```{r, include=FALSE}
 # load("HourlyRainfall_ER2016.RData")
 
 # Read grid onto which data are interpolated
@@ -279,12 +279,24 @@ cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits
 
 
 Rasters
-```{r}
-library(tidyverse)
-library(sp)
-library(rgdal)
-library(raster)
-library(rNOMADS)
+```{r, message=FALSE, warning=FALSE}
+# load("HourlyRainfall_ER2016.RData")
+# load("IntpRainFields_ER2016.RData")
+# RainGrid <- read.table(FileGrid, header = TRUE, sep=",")
+
+stopifnot(dim(RainFields)[1] == length(unique(CmlHourlyData$DateTime)))
+stopifnot(dim(RainFields)[2] == dim(RainGrid)[1])
+
+row.names(RainFields) <- sort(unique(CmlHourlyData$DateTime))
+
+# plot(rowSums(RainFields))
+
+
+require(tidyverse)
+require(sp)
+require(rgdal)
+require(raster)
+require(rNOMADS)
 
 # Carico i confini di provincia
 shapefilename  <- "/home/giacomo/Projects/Rainlink4EMR/scripts/init_scripts/interpolation_grid/clippingZoneUtility/kml/PARMA.kml"
@@ -294,12 +306,26 @@ bologna.border <- readOGR(shapefilename)
 
 
 # mappe
-mapXYZ     <- RainGrid
-mapXYZ$Z   <- RainFields[11,]
-rast.cml   <- rasterFromXYZ(mapXYZ, digits = 2)
-projection(rast.cml) <- CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+mapXYZ <- RainGrid
 
-plot(rast.cml)
+RainMaps <- raster()
+pb <- txtProgressBar(min = 0, max = nrow(RainFields), style = 3)
+
+for(i in 1:nrow(RainFields)){
+  mapXYZ$Z   <- RainFields[i,]
+  rast.cml   <- rasterFromXYZ(mapXYZ, digits = 2)
+  projection(rast.cml) <- CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+  # plot(rast.cml)
+  RainMaps <- addLayer(RainMaps, rast.cml)
+  setTxtProgressBar(pb, i)
+}
+names(RainMaps) <- row.names(RainFields)
+close(pb)
+
+save(RainMaps, file = "IntpRainMaps_ER2016.RData")
+
+plot(RainMaps$X201605112300)
+plot(RainMaps, "X201605112300")
 
 ```
 

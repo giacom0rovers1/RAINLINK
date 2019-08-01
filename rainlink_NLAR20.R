@@ -27,7 +27,7 @@ DataPreprocessed <- PreprocessingMinMaxRSL(Data=Linkdata,
                                            MinFrequency=MinFrequency,
                                            verbose=TRUE)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 360 seconds
+cat(sprintf("Preprocessing completed. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 360 seconds
 
 
 
@@ -45,7 +45,7 @@ WetDry <- WetDryNearbyLinkApMinMaxRSL(Data=DataPreprocessed,
                                       ThresholdNumberLinks=ThresholdNumberLinks, 
                                       ThresholdWetDry=ThresholdWetDry)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))  # ~ 3100 seconds
+cat(sprintf("Classification completed. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))  # ~ 3100 seconds
 
 # 3. RefLevelMinMaxRSL
 StartTime <- proc.time()
@@ -55,7 +55,7 @@ Pref <- RefLevelMinMaxRSL(Data=DataPreprocessed,
                           HoursRefLevel=HoursRefLevel,
                           PeriodHoursRefLevel=PeriodHoursRefLevel)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 5610 seconds
+cat(sprintf("Reference level found. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 5610 seconds
 
 
 # 4. OutlierFilterMinMax
@@ -87,7 +87,7 @@ Rmean <- RainRetrievalMinMaxRSL(Aa=Aa,
                                 PminCor=Pcor$PminCor,
                                 Pref=Pref)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 20 seconds
+cat(sprintf("Rain retrieval completed. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 20 seconds
 
 # Write path-average rainfall data to files:
 ID <- unique(DataPreprocessed$ID)
@@ -175,6 +175,6 @@ RainFields <- Interpolation(Data = CmlHourlyData,
 
 save(RainFields, file = "IntpRainFields_NLAR20_ER2016.RData")
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
+cat(sprintf("Interpolation finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
 
