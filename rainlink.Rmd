@@ -65,7 +65,7 @@ DataPreprocessed <- PreprocessingMinMaxRSL(Data=Linkdata,
                                            MinFrequency=MinFrequency,
                                            verbose=TRUE)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 360 seconds
+cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 360 s
 
 summary(DataPreprocessed)
 
@@ -89,7 +89,7 @@ WetDry <- WetDryNearbyLinkApMinMaxRSL(Data=DataPreprocessed,
                                       ThresholdNumberLinks=ThresholdNumberLinks, 
                                       ThresholdWetDry=ThresholdWetDry)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))  # ~ 3100 seconds
+cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))  # ~ 3100 s
 
 summary(WetDry)
 ```
@@ -105,7 +105,7 @@ Pref <- RefLevelMinMaxRSL(Data=DataPreprocessed,
                           HoursRefLevel=HoursRefLevel,
                           PeriodHoursRefLevel=PeriodHoursRefLevel)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 5610 seconds
+cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 5610 s
 
 summary(Pref)
 ```
@@ -154,7 +154,7 @@ Rmean <- RainRetrievalMinMaxRSL(Aa=Aa,
                                 PminCor=Pcor$PminCor,
                                 Pref=Pref)
 
-cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 20 seconds
+cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 20 s
 
 summary(Rmean)
 hist(log(Rmean))
@@ -270,10 +270,36 @@ RainFields <- Interpolation(Data = CmlHourlyData,
                             Rmean = CmlHourlyData$HourlyRainfallDepth,
                             OutputDir = NULL)  # FolderRainMaps
 
-save(RainFields, file = "IntpRainFields_ER2016.RData")
+save(RainFields, file = "IntpRainFields_ER2016.RData")  # ~ 240 s
 
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
+
+```
+
+
+Rasters
+```{r}
+library(tidyverse)
+library(sp)
+library(rgdal)
+library(raster)
+library(rNOMADS)
+
+# Carico i confini di provincia
+shapefilename  <- "/home/giacomo/Projects/Rainlink4EMR/scripts/init_scripts/interpolation_grid/clippingZoneUtility/kml/PARMA.kml"
+parma.border   <- readOGR(shapefilename)
+shapefilename  <- "/home/giacomo/Projects/Rainlink4EMR/scripts/init_scripts/interpolation_grid/clippingZoneUtility/kml/BOLOGNA.kml"
+bologna.border <- readOGR(shapefilename)
+
+
+# mappe
+mapXYZ     <- RainGrid
+mapXYZ$Z   <- RainFields[11,]
+rast.cml   <- rasterFromXYZ(mapXYZ, digits = 2)
+projection(rast.cml) <- CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+
+plot(rast.cml)
 
 ```
 

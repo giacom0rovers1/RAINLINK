@@ -122,7 +122,23 @@ fast50x_accu1hr <- function(CmlRainfall){
   
   elapsed_start <- round((proc.time()-startTime)[3],digits=1)
   cat(sprintf("\nElapsed %.1f s", elapsed_start))
-  return(CmlHourlyData)
+  
+  
+  filter <- which(is.na(CmlHourlyData$Frequency) 
+                  & is.na(CmlHourlyData$DateTime)
+                  & is.na(CmlHourlyData$PathLength)
+                  & is.na(CmlHourlyData$XStart)
+                  & is.na(CmlHourlyData$YStart)
+                  & is.na(CmlHourlyData$XEnd)
+                  & is.na(CmlHourlyData$YEnd)
+                  & is.na(CmlHourlyData$Label)
+                  & is.na(CmlHourlyData$Direction)
+                  & is.na(CmlHourlyData$ID))
+  
+  require(txtplot)
+  txtboxplot(CmlHourlyData$HourlyRainfallDepth[CmlHourlyData$HourlyRainfallDepth > 0.1])
+  
+  return(CmlHourlyData[-filter,])
 }
 
 
