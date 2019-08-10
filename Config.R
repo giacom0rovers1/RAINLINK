@@ -58,6 +58,12 @@ if (GivePathLib=="yes")
   library(digest,lib.loc=pathlib)
   #  May require installation of nc-config outside R	
   library(ncdf4,lib.loc=pathlib)
+  
+  
+  # additional libraries
+  require(tidyverse, lib.loc = pathlib)
+  require(raster, lib.loc = pathlib)
+  require(rNOMADS, lib.loc = pathlib)
 }
 if (GivePathLib=="no")
 {
@@ -78,6 +84,11 @@ if (GivePathLib=="no")
   library(rgdal)
   library(digest)
   library(ncdf4)	
+  
+  # additional libraries
+  require(tidyverse)
+  require(raster)
+  require(rNOMADS)
 }
 if (GivePathLib!="no"&GivePathLib!="yes")
 {

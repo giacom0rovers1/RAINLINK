@@ -177,4 +177,32 @@ save(RainFields, file = "IntpRainFields_NLAR20_ER2016.RData")
 
 cat(sprintf("Interpolation finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
+# load("HourlyRainfall_NLAR20_ER2016.RData")
+# load("IntpRainFields_NLAR20_ER2016.RData")
+# RainGrid <- read.table(FileGrid, header = TRUE, sep=",")
 
+# dimensional checks
+stopifnot(dim(RainFields)[1] == length(unique(CmlHourlyData$DateTime)))
+stopifnot(dim(RainFields)[2] == dim(RainGrid)[1])
+
+# timestrings
+row.names(RainFields) <- sort(unique(CmlHourlyData$DateTime))
+
+# rain maps
+mapXYZ <- RainGrid
+
+RainMaps <- raster()
+pb <- txtProgressBar(min = 0, max = nrow(RainFields), style = 3)
+
+for(i in 1:nrow(RainFields)){
+  mapXYZ$Z   <- RainFields[i,]
+  rast.cml   <- rasterFromXYZ(mapXYZ, digits = 2)
+  projection(rast.cml) <- CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+  # plot(rast.cml)
+  RainMaps <- addLayer(RainMaps, rast.cml)
+  setTxtProgressBar(pb, i)
+}
+names(RainMaps) <- row.names(RainFields)
+close(pb)
+
+save(RainMaps, file = "IntpRainMaps_NLAR20_ER2016.RData")

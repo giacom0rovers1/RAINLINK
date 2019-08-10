@@ -284,28 +284,18 @@ Rasters
 # load("IntpRainFields_ER2016.RData")
 # RainGrid <- read.table(FileGrid, header = TRUE, sep=",")
 
+# dimensional checks
 stopifnot(dim(RainFields)[1] == length(unique(CmlHourlyData$DateTime)))
 stopifnot(dim(RainFields)[2] == dim(RainGrid)[1])
 
+# timestrings
 row.names(RainFields) <- sort(unique(CmlHourlyData$DateTime))
 
-# plot(rowSums(RainFields))
+# catchments shapefiles
+parma.border   <- readOGR("PARMA.kml")
+bologna.border <- readOGR("BOLOGNA.kml")
 
-
-require(tidyverse)
-require(sp)
-require(rgdal)
-require(raster)
-require(rNOMADS)
-
-# Carico i confini di provincia
-shapefilename  <- "/home/giacomo/Projects/Rainlink4EMR/scripts/init_scripts/interpolation_grid/clippingZoneUtility/kml/PARMA.kml"
-parma.border   <- readOGR(shapefilename)
-shapefilename  <- "/home/giacomo/Projects/Rainlink4EMR/scripts/init_scripts/interpolation_grid/clippingZoneUtility/kml/BOLOGNA.kml"
-bologna.border <- readOGR(shapefilename)
-
-
-# mappe
+# rain maps
 mapXYZ <- RainGrid
 
 RainMaps <- raster()
@@ -324,7 +314,9 @@ close(pb)
 
 save(RainMaps, file = "IntpRainMaps_ER2016.RData")
 
-plot(RainMaps$X201605112300)
+
+# plot(rowSums(RainFields))
+# plot(RainMaps$X201605112300)
 plot(RainMaps, "X201605112300")
 
 ```
