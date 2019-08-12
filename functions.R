@@ -150,7 +150,7 @@ fast50x_accu1hr <- function(CmlRainfall){
 # Corrected 29 oct 2017 
 # Revised 31 jul 2019
 
-PolyGridGen <- function(IntpGrid, SaveToFile){
+PolyGridGen <- function(IntpGrid, SaveToFile, FileName){
   cat(sprintf('Loading...\n'))
   require(sp)
   require(rgdal)
@@ -201,7 +201,7 @@ PolyGridGen <- function(IntpGrid, SaveToFile){
   stopifnot(length(polygons[,1])==(6*totalpoints))
   
   if(SaveToFile){
-    write.table(polygons, file='PolyGrid5x5_BO+PR.dat', row.names=F)
+    write.table(polygons, file=FileName, row.names=F)
   }
   
   return(polygons)
