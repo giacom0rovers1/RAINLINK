@@ -141,6 +141,115 @@ fast50x_accu1hr <- function(CmlRainfall){
   return(CmlHourlyData[-filter,])
 }
 
+# daily accumulation on 15 min CML data
+fast50x_accu24hr <- function(CmlRainfall){
+  require(zoo)
+  startTime <- proc.time()
+  
+  CmlRainfall <- CmlRainfall[order(CmlRainfall$ID, CmlRainfall$DateTime),]
+  
+  log1 <- substr(CmlRainfall$DateTime,9,12)=='0000'
+  sign <- c(T, rep(F, 95) ,T) # 24*4+1
+  
+  wholeday <- rollapply(log1, width = 97, by = 1,
+                         FUN = function(x) identical(x,y=sign),
+                         align="right", 
+                         fill = NA)
+  
+  samelink <- rollapply(CmlRainfall$ID, width = 96, by = 1,
+                        FUN = function(x) length(unique(x)) == 1,
+                        align="right", 
+                        fill = NA)
+  
+  sel <- wholeday & samelink
+  
+  
+  fouravg <- rollapplyr(CmlRainfall$RainfallMeanInt, width=96, by=1,
+                        FUN = mean,
+                        align="right", 
+                        fill = NA)
+  
+  CmlDailyData <- cbind(CmlRainfall[sel,
+                                     c("DateTime","Frequency", "PathLength",  "XStart", 
+                                       "YStart", "XEnd", "YEnd", "Label", 
+                                       "Polarization", "Direction",  "ID")],
+                         DailyRainfallDepth = fouravg[sel])
+  
+  elapsed_start <- round((proc.time()-startTime)[3],digits=1)
+  cat(sprintf("\nElapsed %.1f s", elapsed_start))
+  
+  
+  filter <- which(is.na(CmlDailyData$Frequency) 
+                  & is.na(CmlDailyData$DateTime)
+                  & is.na(CmlDailyData$PathLength)
+                  & is.na(CmlDailyData$XStart)
+                  & is.na(CmlDailyData$YStart)
+                  & is.na(CmlDailyData$XEnd)
+                  & is.na(CmlDailyData$YEnd)
+                  & is.na(CmlDailyData$Label)
+                  & is.na(CmlDailyData$Direction)
+                  & is.na(CmlDailyData$ID))
+  
+  require(txtplot)
+  txtboxplot(CmlDailyData$DailyRainfallDepth[CmlDailyData$DailyRainfallDepth > 0.1])
+  
+  return(CmlDailyData[-filter,])
+}
+
+# daily accumulation on hourly rasters
+rast50x_accu24hr <- function(hrast){
+  require(zoo)
+  startTime <- proc.time()
+  
+  # CmlRainfall <- CmlRainfall[order(CmlRainfall$ID, CmlRainfall$DateTime),]
+  
+  log1 <- substr(names(hrast),10,13)=='0000'
+  sign <- c(T, rep(F, 23) ,T) # 24+1
+  
+  wholeday <- rollapply(log1, width = 25, by = 1,
+                        FUN = function(x) identical(x,y=sign),
+                        align="right", 
+                        fill = NA)
+  
+  samelink <- rollapply(CmlRainfall$ID, width =24, by = 1,
+                        FUN = function(x) length(unique(x)) == 1,
+                        align="right", 
+                        fill = NA)
+  
+  sel <- wholeday & samelink
+  
+  
+  fouravg <- rollapplyr(CmlRainfall$RainfallMeanInt, width=96, by=1,
+                        FUN = mean,
+                        align="right", 
+                        fill = NA)
+  
+  CmlDailyData <- cbind(CmlRainfall[sel,
+                                    c("DateTime","Frequency", "PathLength",  "XStart", 
+                                      "YStart", "XEnd", "YEnd", "Label", 
+                                      "Polarization", "Direction",  "ID")],
+                        DailyRainfallDepth = fouravg[sel])
+  
+  elapsed_start <- round((proc.time()-startTime)[3],digits=1)
+  cat(sprintf("\nElapsed %.1f s", elapsed_start))
+  
+  
+  filter <- which(is.na(CmlDailyData$Frequency) 
+                  & is.na(CmlDailyData$DateTime)
+                  & is.na(CmlDailyData$PathLength)
+                  & is.na(CmlDailyData$XStart)
+                  & is.na(CmlDailyData$YStart)
+                  & is.na(CmlDailyData$XEnd)
+                  & is.na(CmlDailyData$YEnd)
+                  & is.na(CmlDailyData$Label)
+                  & is.na(CmlDailyData$Direction)
+                  & is.na(CmlDailyData$ID))
+  
+  require(txtplot)
+  txtboxplot(CmlDailyData$DailyRainfallDepth[CmlDailyData$DailyRainfallDepth > 0.1])
+  
+  return(CmlDailyData[-filter,])
+}
 
 ################################################################################################
 

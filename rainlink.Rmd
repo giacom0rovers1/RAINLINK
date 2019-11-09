@@ -41,7 +41,7 @@ source("functions.R")
 
 # Load data:
 load("data/Linkdata_vodafone2016.RData")
-summary(Linkdata)
+# summary(Linkdata)
 
 # Add column with polarization if this column is not supplied in the link data:
 if ("Polarization" %in% names(Linkdata)==FALSE)
@@ -180,7 +180,7 @@ CmlRainfall$DryClass          <- WetDry$Dry
 CmlRainfall$RainfallMeanInt   <- Rmean
 CmlRainfall$RainfallDepthPath <- Rmean * dt / 3600
 
-# save(CmlRainfall, file = "CmlRainfall_ER2016.RData")
+save(CmlRainfall, file = "CmlRainfall_ER2016.RData")
 save(CmlRainfall, file = "CmlRainfall_ER2016v2.RData", version = 2)
 
 # write.csv(x = CmlRainfall, file = "CmlRainfall_ER2016.csv")
