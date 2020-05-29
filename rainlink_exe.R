@@ -1,43 +1,43 @@
----
-title: "RAINLINK Notebook"
-output: html_notebook
----
-The RAINLINK package. Retrieval algorithm for rainfall mapping from microwave links
-in a cellular communication network.
-
-Version 1.14
-Copyright (C) 2019 Aart Overeem
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-Note that it is not necessarily a problem if a function argument is not supplied to the function. If the
-function argument is not used, then there is no problem. Only be aware that you should use e.g.
-MaxFrequency=MaxFrequency. I.e. if you only supply MaxFrequency and the function argument before
-MaxFrequency is missing, than the function will not execute properly.
-
-
-# 0. Load R libraries, parameter values, and other settings.
-This also loads the RAINLINK package.           
-```{r Setup, include=FALSE}
+#' ---
+#' title: "RAINLINK Notebook"
+#' output: html_notebook
+#' ---
+#' The RAINLINK package. Retrieval algorithm for rainfall mapping from microwave links
+#' in a cellular communication network.
+#' 
+#' Version 1.14
+#' Copyright (C) 2019 Aart Overeem
+#' 
+#' This program is free software: you can redistribute it and/or modify
+#' it under the terms of the GNU General Public License as published by
+#' the Free Software Foundation, either version 3 of the License, or
+#' (at your option) any later version.
+#' 
+#' This program is distributed in the hope that it will be useful,
+#' but WITHOUT ANY WARRANTY; without even the implied warranty of
+#' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#' GNU General Public License for more details.
+#' 
+#' You should have received a copy of the GNU General Public License
+#' along with this program. If not, see <http://www.gnu.org/licenses/>.
+#' 
+#' Note that it is not necessarily a problem if a function argument is not supplied to the function. If the
+#' function argument is not used, then there is no problem. Only be aware that you should use e.g.
+#' MaxFrequency=MaxFrequency. I.e. if you only supply MaxFrequency and the function argument before
+#' MaxFrequency is missing, than the function will not execute properly.
+#' 
+#' 
+#' # 0. Load R libraries, parameter values, and other settings.
+#' This also loads the RAINLINK package.           
+## ----Setup, include=FALSE-----------------------------------------------------
 rm(list = ls())
 source("Config.R") 
 source("functions.R")
-```
 
-# 1. PreprocessingMinMaxRSL
-
-```{r Data loading}
+#' 
+#' # 1. PreprocessingMinMaxRSL
+#' 
+## ----Data loading-------------------------------------------------------------
 
 # Load data:
 load("data/Linkdata_vodafone2016MJ.RData")
@@ -48,15 +48,15 @@ if ("Polarization" %in% names(Linkdata)==FALSE)
 {
   Linkdata$Polarization <- rep(NA,nrow(Linkdata))
 }
-```
 
-When no information on polarization is provided, the above code creates a column of NA for Polarization. In the function "RainRetrievalMinMaxRSL.R" links with
-NA values for polarization are processed with a & b values determined for vertically polarized signals.
-If information on polarization of links is available, use H for horizontally polarized & V for vertically polarized in "Linkdata Polarization".
-H, V & NA may occur in the same Linkdata file.
-
-
-```{r Preprocessing}
+#' 
+#' When no information on polarization is provided, the above code creates a column of NA for Polarization. In the function "RainRetrievalMinMaxRSL.R" links with
+#' NA values for polarization are processed with a & b values determined for vertically polarized signals.
+#' If information on polarization of links is available, use H for horizontally polarized & V for vertically polarized in "Linkdata Polarization".
+#' H, V & NA may occur in the same Linkdata file.
+#' 
+#' 
+## ----Preprocessing------------------------------------------------------------
 # Run R function:
 StartTime <- proc.time()
 
@@ -69,12 +69,12 @@ cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits
 
 summary(DataPreprocessed)
 
-```
 
-
-# 2. WetDryNearbyLinkApMinMaxRSL
-
-```{r Classification}
+#' 
+#' 
+#' # 2. WetDryNearbyLinkApMinMaxRSL
+#' 
+## ----Classification-----------------------------------------------------------
 # Run R function:	
 StartTime <- proc.time()
 
@@ -92,11 +92,11 @@ WetDry <- WetDryNearbyLinkApMinMaxRSL(Data=DataPreprocessed,
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))  # ~ 3100 s
 
 summary(WetDry)
-```
 
-# 3. RefLevelMinMaxRSL
-
-```{r Reference level}
+#' 
+#' # 3. RefLevelMinMaxRSL
+#' 
+## ----Reference level----------------------------------------------------------
 # Run R function:
 StartTime <- proc.time()
 
@@ -108,33 +108,33 @@ Pref <- RefLevelMinMaxRSL(Data=DataPreprocessed,
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1))) # ~ 5610 s
 
 summary(Pref)
-```
 
-# 4. OutlierFilterMinMax
-```{r Outliers filter}
+#' 
+#' # 4. OutlierFilterMinMax
+## ----Outliers filter----------------------------------------------------------
 # Run R function:
 DataOutlierFiltered <- OutlierFilterMinMaxRSL(Data=DataPreprocessed,
                                               F=WetDry$F,
                                               FilterThreshold=FilterThreshold)
 
 summary(DataOutlierFiltered)
-```
 
-# 5. CorrectMinMaxRSL
-
-```{r Corrected powers}
+#' 
+#' # 5. CorrectMinMaxRSL
+#' 
+## ----Corrected powers---------------------------------------------------------
 # Run R function:
 Pcor <- CorrectMinMaxRSL(Data=DataOutlierFiltered,
                          Dry=WetDry$Dry,
                          Pref=Pref)
 
 summary(Pcor)
-```
 
-
-# 6. RainRetrievalMinMaxRSL
-
-```{r Rain retrival}
+#' 
+#' 
+#' # 6. RainRetrievalMinMaxRSL
+#' 
+## ----Rain retrival------------------------------------------------------------
 kRPowerLawDataH <- read.table(FileRainRetrHorizontal)
 colnames(kRPowerLawDataH) <- c("f", "a", "b")
 
@@ -158,13 +158,13 @@ cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits
 
 summary(Rmean)
 hist(log(Rmean))
-```
 
-
-# Write path-average rainfall data to files:
-
-
-```{r Save to RData}
+#' 
+#' 
+#' # Write path-average rainfall data to files:
+#' 
+#' 
+## ----Save to RData------------------------------------------------------------
 ID <- unique(DataPreprocessed$ID)
 t <- sort(unique(DataPreprocessed$DateTime))
 t_sec <- as.numeric(as.POSIXct(as.character(t), format = "%Y%m%d%H%M"))
@@ -184,10 +184,10 @@ save(CmlRainfall, file = "CmlRainfall_ER2016MJ.RData")
 save(CmlRainfall, file = "CmlRainfall_ER2016MJv2.RData", version = 2)
 
 # write.csv(x = CmlRainfall, file = "CmlRainfall_ER2016.csv")
-```
 
-
-```{r Save to file}
+#' 
+#' 
+## ----Save to file-------------------------------------------------------------
 ## slow write-to-file, use tidyverse::write_delim() instead
 ToFile = F
 if (ToFile)
@@ -217,14 +217,14 @@ if (ToFile)
     write.table(int_data, Filename, row.names = FALSE, col.names = TRUE, append = FALSE, quote = FALSE)
   }
 }
-```
-Note that the output files contain rainfall depths (mm). If these data are to be used for the interpolation, they must first be read ("Interpolation.R" does not read these files).
-Using the data for "Interpolation.R" requires a conversion from rainfall depth (mm) to rainfall intensity (mm/h).
 
-
-# 7. Interpolation
-Interpolation will be performed for hourly accumulated rainfall, so cumulative sums have to be performed
-```{r}
+#' Note that the output files contain rainfall depths (mm). If these data are to be used for the interpolation, they must first be read ("Interpolation.R" does not read these files).
+#' Using the data for "Interpolation.R" requires a conversion from rainfall depth (mm) to rainfall intensity (mm/h).
+#' 
+#' 
+#' # 7. Interpolation
+#' Interpolation will be performed for hourly accumulated rainfall, so cumulative sums have to be performed
+## -----------------------------------------------------------------------------
 # load("CmlRainfall_ER2016.RData")
 
 # Compute hourly accumulated rainfall as sum of the 15min rainfall depths
@@ -240,11 +240,11 @@ summary(CmlHourlyData)
 #          CmlHourlyData$HourlyRainfallDepth, 
 #          pch = "+")
 
-```
 
-
-Interpolation over the grid
-```{r, include=FALSE}
+#' 
+#' 
+#' Interpolation over the grid
+## ---- include=FALSE-----------------------------------------------------------
 # load("HourlyRainfall_ER2016.RData")
 
 # Read grid onto which data are interpolated
@@ -275,11 +275,11 @@ save(RainFields, file = "IntpRainFields_ER2016MJ.RData")  # ~ 240 s
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
 
 
-```
 
-
-Rasters
-```{r, message=FALSE, warning=FALSE}
+#' 
+#' 
+#' Rasters
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 # load("HourlyRainfall_ER2016.RData")
 # load("IntpRainFields_ER2016.RData")
 # RainGrid <- read.table(FileGrid, header = TRUE, sep=",")
@@ -320,5 +320,5 @@ save(RainMaps, file = "IntpRainMaps_ER2016MJ.RData")
 # plot(RainMaps, "X201605112300")
 plot(mask(RainMaps,borders), "X201605112300", zlim = c(0,16))
 
-```
 
+#' 
