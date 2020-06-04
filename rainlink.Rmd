@@ -30,8 +30,8 @@ MaxFrequency is missing, than the function will not execute properly.
 # 0. Load R libraries, parameter values, and other settings.
 This also loads the RAINLINK package.           
 ```{r Setup, include=FALSE}
-rm(list = ls())
-source("Config.R") 
+# rm(list = ls())
+source("config.R") 
 source("functions.R")
 ```
 
