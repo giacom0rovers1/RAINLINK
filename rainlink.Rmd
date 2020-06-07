@@ -321,13 +321,19 @@ for(i in 1:nrow(RainFields)){
 names(RainMaps) <- row.names(RainFields)
 close(pb)
 
-save(RainMaps, file = "IntpRainMaps.RData")
-
+# save(RainMaps, file = "IntpRainMaps.RData")
+writeRaster(x = RainMaps, filename = "IntpRainMaps")
 
 # plot(rowSums(RainFields))
 # plot(RainMaps$X201605112300)
 # plot(RainMaps, "X201605112300")
-plot(mask(RainMaps,borders), "X201605112300", zlim = c(0,16))
+plot(mask(RainMaps,borders), "X201605112300", 
+     zlim = c(0,21), 
+     colNA = "grey33",
+     col=c("#FFFFFF", 
+           cm.colors(n = 9, rev = T)[6:9], 
+           rainbow(n = 16,start = 0.5, end = 0.9, s = 0.7), 
+           "red")) #, addfun = lines(borders)
 
 ```
 
