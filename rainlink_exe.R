@@ -30,10 +30,19 @@
 #' # 0. Load R libraries, parameter values, and other settings.
 #' This also loads the RAINLINK package.           
 ## ----Setup, include=FALSE-----------------------------------------------------
-rm(list = ls())
-source("Config.R") 
+# rm(list = ls())
+source("config.R") 
 source("functions.R")
 
+#' If the time zone of the employed microwave link dataset is not the same as the (local) time zone used by R on your computer, set the time zone of the microwave link dataset:
+#' (this is important for functions RefLevelMinMaxRSL, WetDryNearbyLinkApMinMaxRSL and Interpolation):
+## -----------------------------------------------------------------------------
+Sys.setenv(TZ='UTC')
+
+#' 
+#' Otherwise RAINLINK can derive a wrong time interval length due to going to or from daylight saving time (DST). Timing of DST may be different between time zones, or one time zone may not have a change to/from DST.
+#' 
+#' 
 #' 
 #' # 1. PreprocessingMinMaxRSL
 #' 
@@ -312,13 +321,19 @@ for(i in 1:nrow(RainFields)){
 names(RainMaps) <- row.names(RainFields)
 close(pb)
 
-save(RainMaps, file = "IntpRainMaps.RData")
-
+# save(RainMaps, file = "IntpRainMaps.RData")
+writeRaster(x = RainMaps, filename = "IntpRainMaps")
 
 # plot(rowSums(RainFields))
 # plot(RainMaps$X201605112300)
 # plot(RainMaps, "X201605112300")
-plot(mask(RainMaps,borders), "X201605112300", zlim = c(0,16))
+plot(mask(RainMaps,borders), "X201605112300", 
+     zlim = c(0,21), 
+     colNA = "grey33",
+     col=c("#FFFFFF", 
+           cm.colors(n = 9, rev = T)[6:9], 
+           rainbow(n = 16,start = 0.5, end = 0.9, s = 0.7), 
+           "red")) #, addfun = lines(borders)
 
 
 #' 

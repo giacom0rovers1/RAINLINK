@@ -322,7 +322,7 @@ names(RainMaps) <- row.names(RainFields)
 close(pb)
 
 # save(RainMaps, file = "IntpRainMaps.RData")
-writeRaster(x = RainMaps, filename = "IntpRainMaps")
+writeRaster(x = RainMaps, filename = "IntpRainMaps", overwrite = TRUE)
 
 # plot(rowSums(RainFields))
 # plot(RainMaps$X201605112300)
