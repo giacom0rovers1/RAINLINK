@@ -29,14 +29,14 @@
 #' 
 #' # 0. Load R libraries, parameter values, and other settings.
 #' This also loads the RAINLINK package.           
-## ----Setup, include=FALSE-----------------------------------------------------
+## ----Setup, include=FALSE---------------------------------------------------------------------------
 # rm(list = ls())
 source("config.R") 
 source("functions.R")
 
 #' If the time zone of the employed microwave link dataset is not the same as the (local) time zone used by R on your computer, set the time zone of the microwave link dataset:
 #' (this is important for functions RefLevelMinMaxRSL, WetDryNearbyLinkApMinMaxRSL and Interpolation):
-## -----------------------------------------------------------------------------
+## ---------------------------------------------------------------------------------------------------
 Sys.setenv(TZ='UTC')
 
 #' 
@@ -46,7 +46,7 @@ Sys.setenv(TZ='UTC')
 #' 
 #' # 1. PreprocessingMinMaxRSL
 #' 
-## ----Data loading-------------------------------------------------------------
+## ----Data loading-----------------------------------------------------------------------------------
 
 # Load data:
 load("data/Linkdata.RData")
@@ -65,7 +65,7 @@ if ("Polarization" %in% names(Linkdata)==FALSE)
 #' H, V & NA may occur in the same Linkdata file.
 #' 
 #' 
-## ----Preprocessing------------------------------------------------------------
+## ----Preprocessing----------------------------------------------------------------------------------
 # Run R function:
 StartTime <- proc.time()
 
@@ -78,12 +78,16 @@ cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits
 
 summary(DataPreprocessed)
 
+DataRejected <- setdiff(Linkdata, DataPreprocessed)
+summary(DataRejected)
+save(DataRejected, file="DataRejected.RData")
+
 
 #' 
 #' 
 #' # 2. WetDryNearbyLinkApMinMaxRSL
 #' 
-## ----Classification-----------------------------------------------------------
+## ----Classification---------------------------------------------------------------------------------
 # Run R function:	
 StartTime <- proc.time()
 
@@ -105,7 +109,7 @@ summary(WetDry)
 #' 
 #' # 3. RefLevelMinMaxRSL
 #' 
-## ----Reference level----------------------------------------------------------
+## ----Reference level--------------------------------------------------------------------------------
 # Run R function:
 StartTime <- proc.time()
 
@@ -120,7 +124,7 @@ summary(Pref)
 
 #' 
 #' # 4. OutlierFilterMinMax
-## ----Outliers filter----------------------------------------------------------
+## ----Outliers filter--------------------------------------------------------------------------------
 # Run R function:
 DataOutlierFiltered <- OutlierFilterMinMaxRSL(Data=DataPreprocessed,
                                               F=WetDry$F,
@@ -131,7 +135,7 @@ summary(DataOutlierFiltered)
 #' 
 #' # 5. CorrectMinMaxRSL
 #' 
-## ----Corrected powers---------------------------------------------------------
+## ----Corrected powers-------------------------------------------------------------------------------
 # Run R function:
 Pcor <- CorrectMinMaxRSL(Data=DataOutlierFiltered,
                          Dry=WetDry$Dry,
@@ -143,7 +147,7 @@ summary(Pcor)
 #' 
 #' # 6. RainRetrievalMinMaxRSL
 #' 
-## ----Rain retrival------------------------------------------------------------
+## ----Rain retrival----------------------------------------------------------------------------------
 kRPowerLawDataH <- read.table(FileRainRetrHorizontal)
 colnames(kRPowerLawDataH) <- c("f", "a", "b")
 
@@ -173,12 +177,18 @@ hist(log(Rmean))
 #' # Write path-average rainfall data to files:
 #' 
 #' 
-## ----Save to RData------------------------------------------------------------
+## ----Save to RData----------------------------------------------------------------------------------
 ID <- unique(DataPreprocessed$ID)
 t <- sort(unique(DataPreprocessed$DateTime))
 t_sec <- as.numeric(as.POSIXct(as.character(t), format = "%Y%m%d%H%M"))
 dt <- min(diff(t_sec))
 save(list=ls(), file = "Cmldata.RData")
+
+stopifnot(nrow(DataPreprocessed) == nrow(WetDry))
+stopifnot(nrow(DataPreprocessed) == nrow(Pcor))
+stopifnot(nrow(DataPreprocessed) == nrow(Pref))
+stopifnot(nrow(DataPreprocessed) == nrow(Rmean))
+
 
 ## merge in a single dataset for analyses
 CmlRainfall                   <- DataPreprocessed
@@ -186,6 +196,7 @@ CmlRainfall$Pref              <- Pref
 CmlRainfall$PminCor           <- Pcor$PminCor
 CmlRainfall$PmaxCor           <- Pcor$PmaxCor
 CmlRainfall$DryClass          <- WetDry$Dry
+CmlRainfall$OutlierFilter     <- WetDry$F
 CmlRainfall$RainfallMeanInt   <- Rmean
 CmlRainfall$RainfallDepthPath <- Rmean * dt / 3600
 
@@ -196,7 +207,7 @@ save(CmlRainfall, file = "CmlRainfall_v2.RData", version = 2)
 
 #' 
 #' 
-## ----Save to file-------------------------------------------------------------
+## ----Save to file-----------------------------------------------------------------------------------
 ## slow write-to-file, use tidyverse::write_delim() instead
 ToFile = F
 if (ToFile)
@@ -233,7 +244,7 @@ if (ToFile)
 #' 
 #' # 7. Interpolation
 #' Interpolation will be performed for hourly accumulated rainfall, so cumulative sums have to be performed
-## -----------------------------------------------------------------------------
+## ---------------------------------------------------------------------------------------------------
 # load("CmlRainfall_ER2016.RData")
 
 # Compute hourly accumulated rainfall as sum of the 15min rainfall depths
@@ -253,7 +264,7 @@ summary(CmlHourlyData)
 #' 
 #' 
 #' Interpolation over the grid
-## ---- include=FALSE-----------------------------------------------------------
+## ---- include=FALSE---------------------------------------------------------------------------------
 # load("HourlyRainfall_ER2016.RData")
 
 # Read grid onto which data are interpolated
@@ -279,6 +290,9 @@ RainFields <- Interpolation(Data = CmlHourlyData,
                             Rmean = CmlHourlyData$HourlyRainfallDepth,
                             OutputDir = NULL)  # FolderRainMaps
 
+## Estimates of the interpolated field smaller than half of the minimum detectable rain from a RG are set to zero.
+RainFields[RainFields < 0.05] <- 0 
+
 save(RainFields, file = "IntpRainFields.RData")  # ~ 240 s
 
 cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits=1)))
@@ -288,7 +302,7 @@ cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits
 #' 
 #' 
 #' Rasters
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ---- message=FALSE, warning=FALSE------------------------------------------------------------------
 # load("HourlyRainfall_ER2016.RData")
 # load("IntpRainFields_ER2016.RData")
 # RainGrid <- read.table(FileGrid, header = TRUE, sep=",")
@@ -322,7 +336,7 @@ names(RainMaps) <- row.names(RainFields)
 close(pb)
 
 # save(RainMaps, file = "IntpRainMaps.RData")
-writeRaster(x = RainMaps, filename = "IntpRainMaps")
+writeRaster(x = RainMaps, filename = "IntpRainMaps", overwrite = TRUE)
 
 # plot(rowSums(RainFields))
 # plot(RainMaps$X201605112300)
