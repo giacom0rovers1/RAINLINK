@@ -78,6 +78,10 @@ cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits
 
 summary(DataPreprocessed)
 
+DataRejected <- setdiff(Linkdata, DataPreprocessed)
+summary(DataRejected)
+save(DataRejected, file="DataRejected.RData")
+
 ```
 
 
@@ -180,12 +184,19 @@ t_sec <- as.numeric(as.POSIXct(as.character(t), format = "%Y%m%d%H%M"))
 dt <- min(diff(t_sec))
 save(list=ls(), file = "Cmldata.RData")
 
+stopifnot(nrow(DataPreprocessed) == nrow(WetDry))
+stopifnot(nrow(DataPreprocessed) == nrow(Pcor))
+stopifnot(nrow(DataPreprocessed) == nrow(Pref))
+stopifnot(nrow(DataPreprocessed) == nrow(Rmean))
+
+
 ## merge in a single dataset for analyses
 CmlRainfall                   <- DataPreprocessed
 CmlRainfall$Pref              <- Pref
 CmlRainfall$PminCor           <- Pcor$PminCor
 CmlRainfall$PmaxCor           <- Pcor$PmaxCor
 CmlRainfall$DryClass          <- WetDry$Dry
+CmlRainfall$OutlierFilter     <- WetDry$F
 CmlRainfall$RainfallMeanInt   <- Rmean
 CmlRainfall$RainfallDepthPath <- Rmean * dt / 3600
 
@@ -278,6 +289,9 @@ RainFields <- Interpolation(Data = CmlHourlyData,
                             RainGrid = RainGrid,
                             Rmean = CmlHourlyData$HourlyRainfallDepth,
                             OutputDir = NULL)  # FolderRainMaps
+
+## Estimates of the interpolated field smaller than half of the minimum detectable rain from a RG are set to zero.
+RainFields[RainFields < 0.05] <- 0 
 
 save(RainFields, file = "IntpRainFields.RData")  # ~ 240 s
 
