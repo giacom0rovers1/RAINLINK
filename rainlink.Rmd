@@ -78,7 +78,7 @@ cat(sprintf("Finished. (%.1f seconds)\n",round((proc.time()-StartTime)[3],digits
 
 summary(DataPreprocessed)
 
-DataRejected <- setdiff(Linkdata, DataPreprocessed)
+DataRejected <- prob::setdiff(Linkdata, DataPreprocessed)
 summary(DataRejected)
 save(DataRejected, file="DataRejected.RData")
 

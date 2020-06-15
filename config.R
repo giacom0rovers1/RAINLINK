@@ -95,6 +95,8 @@ if (GivePathLib=="no")
   require(tidyverse)
   require(raster)
   require(rNOMADS)
+  require(probs)
+  require(progress)
 }
 if (GivePathLib!="no"&GivePathLib!="yes")
 {
