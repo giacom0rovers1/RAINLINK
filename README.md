@@ -1,7 +1,10 @@
 RAINLINK: Retrieval algorithm for rainfall mapping from microwave links in a cellular communication network.
 ------
 
-![Example](LinksAmsterdam15min201109102015StamenMapsMap.jpeg)
+Forked from overeem11/RAINLINK v1.14
+Small adaptations to the Emilia Romagna Region (Italy) and some new handy functions and plotting methods.
+
+![Example](amt-2020-43_keyFig.png)
 
 
 
